@@ -89,3 +89,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Shared payload size is bounded before parsing to avoid excessive untrusted input.
 - **Direction changes:** None.
 - **Commit:** `feat: add offline sharing and gallery`
+
+## 2026-07-16 — Validated AI generation
+
+- **Asked:** Add the server-only OpenAI route after the visible primitives, validate every response, send validation errors back once for repair, and return a friendly error if repair fails.
+- **Implemented:** Added the Responses API integration, strict structured-output request, independent Zod trust-boundary validation, exactly one validation-driven repair attempt, bounded request validation, server-only key protection, and friendly missing-key, rate-limit, network, and repeated-invalid-output responses.
+- **Challenges / uncertainty:** The OpenAI docs MCP required a local API key, so the current official docs and installed SDK types were used. The model is configurable through `OPENAI_MODEL`.
+- **Direction changes:** Interview-specific model calls remain in their own later commit.
+- **Commit:** `feat: add validated AI generation route`
