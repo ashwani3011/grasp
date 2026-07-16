@@ -25,3 +25,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Product tests remain with the features they verify; this commit contains only the reusable harness.
 - **Direction changes:** None.
 - **Commit:** `test: configure component testing harness`
+
+## 2026-07-16 — Dependency security override
+
+- **Asked:** Apply production-grade safeguards from the beginning.
+- **Implemented:** Forced the transitive PostCSS dependency to a patched release and refreshed the lockfile.
+- **Challenges / uncertainty:** npm reported a moderate transitive vulnerability through Next.js; its automatic suggestion was an unsafe framework downgrade, so a narrow patched-version override was used instead.
+- **Direction changes:** None.
+- **Commit:** `fix(deps): pin patched postcss version`
