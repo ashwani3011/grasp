@@ -27,7 +27,7 @@ const eventLoop: StepperSpec = {
     {
       id: "script",
       label: "main()",
-      detail: "The top-level script",
+      detail: "Logs A, schedules both callbacks, then logs D",
       tone: "violet",
     },
     {
@@ -42,17 +42,15 @@ const eventLoop: StepperSpec = {
       detail: "A resolved promise schedules a microtask",
       tone: "cyan",
     },
-    { id: "log-a", label: "console.log('A')", tone: "slate" },
-    { id: "log-d", label: "console.log('D')", tone: "rose" },
   ],
   steps: [
     {
       id: "sync",
       title: "Run the script",
       description:
-        "The script enters the call stack. It registers a timer, resolves a promise, and keeps executing synchronously.",
+        "main() logs A, registers a timer, queues a promise reaction, then logs D. Statements execute inside the script; they are not separate stack frames.",
       columns: [
-        { columnId: "stack", chipIds: ["script", "log-a", "log-d"] },
+        { columnId: "stack", chipIds: ["script"] },
         { columnId: "web", chipIds: ["timer"] },
         { columnId: "micro", chipIds: ["promise"] },
         { columnId: "tasks", chipIds: [] },
@@ -65,7 +63,7 @@ const eventLoop: StepperSpec = {
       description:
         "The timer finishes waiting and its callback joins the task queue. The promise reaction is already in the microtask queue.",
       columns: [
-        { columnId: "stack", chipIds: ["script", "log-d"] },
+        { columnId: "stack", chipIds: [] },
         { columnId: "web", chipIds: [] },
         { columnId: "micro", chipIds: ["promise"] },
         { columnId: "tasks", chipIds: ["timer"] },
@@ -99,136 +97,266 @@ const eventLoop: StepperSpec = {
   ],
 };
 
-function makeStepper(input: {
-  title: string;
-  concept: string;
-  summary: string;
-  takeaway: string;
-  columns: [string, string, string];
-  chips: [string, string, string];
-  steps: [string, string, string][];
-}): StepperSpec {
-  const columnIds = ["left", "middle", "right"] as const;
-  return {
-    version: 1,
-    archetype: "stepper",
-    title: input.title,
-    concept: input.concept,
-    level: "student",
-    summary: input.summary,
-    whyThisArchetype:
-      "The concept changes state in a fixed order, so following the same objects across stages reveals the mechanism.",
-    keyTakeaway: input.takeaway,
-    columns: input.columns.map((title, index) => ({
-      id: columnIds[index],
-      title,
-    })),
-    chips: input.chips.map((label, index) => ({
-      id: `item-${index + 1}`,
-      label,
-      tone: (["violet", "cyan", "amber"] as const)[index],
-    })),
-    steps: input.steps.map(([title, description, positions], index) => ({
-      id: `step-${index + 1}`,
-      title,
-      description,
-      columns: columnIds.map((columnId, columnIndex) => ({
-        columnId,
-        chipIds: positions
-          .split("")
-          .map(Number)
-          .map((position, chipIndex) =>
-            position === columnIndex ? `item-${chipIndex + 1}` : "",
-          )
-          .filter(Boolean),
-      })),
-    })),
-  };
-}
-
-const closures = makeStepper({
+const closures: StepperSpec = {
+  version: 1,
+  archetype: "stepper",
   title: "Closures keep scope alive",
   concept: "JavaScript closures",
+  level: "student",
   summary:
     "Follow a function and its captured variable after the outer call has returned.",
-  takeaway:
+  whyThisArchetype:
+    "Following the function separately from its lexical environment shows what survives the outer call.",
+  keyTakeaway:
     "A closure retains access to the lexical environment where it was created, not a frozen copy of each value.",
-  columns: ["Outer call", "Lexical environment", "Returned function"],
-  chips: ["count = 0", "increment()", "count = 1"],
-  steps: [
-    [
-      "Create the scope",
-      "Calling makeCounter creates a new lexical environment and initializes count.",
-      "010",
-    ],
-    [
-      "Create the inner function",
-      "increment closes over the environment that contains count.",
-      "011",
-    ],
-    [
-      "Return and call",
-      "The outer call ends, but increment still reaches the captured environment and updates count.",
-      "122",
-    ],
+  columns: [
+    { id: "active", title: "Active call", hint: "Executing now" },
+    { id: "environment", title: "Lexical environment", hint: "Bindings" },
+    { id: "returned", title: "Returned value", hint: "Held by caller" },
   ],
-});
+  chips: [
+    {
+      id: "make-counter",
+      label: "makeCounter()",
+      detail: "The outer function call",
+      tone: "violet",
+    },
+    {
+      id: "count-binding",
+      label: "count binding",
+      detail: "A mutable binding initialized to 0",
+      tone: "cyan",
+    },
+    {
+      id: "increment",
+      label: "increment closure",
+      detail: "A function linked to its defining environment",
+      tone: "amber",
+    },
+  ],
+  steps: [
+    {
+      id: "create-scope",
+      title: "Create the scope",
+      description:
+        "Calling makeCounter creates a lexical environment and initializes its count binding to 0.",
+      columns: [
+        { columnId: "active", chipIds: ["make-counter"] },
+        { columnId: "environment", chipIds: ["count-binding"] },
+        { columnId: "returned", chipIds: [] },
+      ],
+    },
+    {
+      id: "create-closure",
+      title: "Create the inner function",
+      description:
+        "increment is created with a reference to this lexical environment, where the count binding lives.",
+      columns: [
+        { columnId: "active", chipIds: ["make-counter"] },
+        {
+          columnId: "environment",
+          chipIds: ["count-binding", "increment"],
+        },
+        { columnId: "returned", chipIds: [] },
+      ],
+    },
+    {
+      id: "return-closure",
+      title: "Return the closure",
+      description:
+        "makeCounter returns, but increment keeps its defining environment reachable. The count binding is not copied into the function.",
+      columns: [
+        { columnId: "active", chipIds: [] },
+        { columnId: "environment", chipIds: ["count-binding"] },
+        { columnId: "returned", chipIds: ["increment"] },
+      ],
+    },
+    {
+      id: "call-closure",
+      title: "Call the returned function",
+      description:
+        "Calling increment follows the environment reference and changes the same count binding from 0 to 1.",
+      columns: [
+        { columnId: "active", chipIds: ["increment"] },
+        { columnId: "environment", chipIds: ["count-binding"] },
+        { columnId: "returned", chipIds: [] },
+      ],
+      callout: "The binding persists; its value can change.",
+    },
+  ],
+};
 
-const oauth = makeStepper({
+const oauth: StepperSpec = {
+  version: 1,
+  archetype: "stepper",
   title: "OAuth authorization code flow",
   concept: "OAuth 2.0 authorization code flow",
+  level: "student",
   summary:
     "Trace the browser, authorization code, and tokens without confusing who should see each secret.",
-  takeaway:
+  whyThisArchetype:
+    "Following each artifact across trust boundaries makes the server-side code exchange explicit.",
+  keyTakeaway:
     "The short-lived code travels through the browser; the backend exchanges it for tokens using a protected channel.",
-  columns: ["Browser", "Authorization server", "App backend"],
-  chips: ["User session", "Authorization code", "Access token"],
-  steps: [
-    [
-      "Ask for consent",
-      "The browser is redirected to the authorization server, where the user signs in and approves access.",
-      "010",
-    ],
-    [
-      "Return a code",
-      "The authorization server redirects back with a short-lived, single-use code.",
-      "100",
-    ],
-    [
-      "Exchange server-side",
-      "The backend validates state and exchanges the code for an access token away from the browser.",
-      "202",
-    ],
+  columns: [
+    { id: "browser", title: "Browser", hint: "User agent" },
+    {
+      id: "authorization",
+      title: "Authorization server",
+      hint: "Issues code & token",
+    },
+    { id: "backend", title: "App backend", hint: "Confidential client" },
   ],
-});
+  chips: [
+    { id: "session", label: "User session", tone: "violet" },
+    {
+      id: "authorization-code",
+      label: "Authorization code",
+      detail: "Short-lived and single-use",
+      tone: "cyan",
+    },
+    {
+      id: "access-token",
+      label: "Access token",
+      detail: "Returned to the app backend",
+      tone: "amber",
+    },
+  ],
+  steps: [
+    {
+      id: "authorize",
+      title: "Ask for authorization",
+      description:
+        "The browser follows a redirect to the authorization server, where the user signs in and approves access.",
+      columns: [
+        { columnId: "browser", chipIds: ["session"] },
+        { columnId: "authorization", chipIds: [] },
+        { columnId: "backend", chipIds: [] },
+      ],
+    },
+    {
+      id: "redirect-code",
+      title: "Return a code",
+      description:
+        "After approval, the authorization server redirects the browser to the registered callback with a short-lived code.",
+      columns: [
+        {
+          columnId: "browser",
+          chipIds: ["session", "authorization-code"],
+        },
+        { columnId: "authorization", chipIds: [] },
+        { columnId: "backend", chipIds: [] },
+      ],
+    },
+    {
+      id: "deliver-code",
+      title: "Validate the callback",
+      description:
+        "The backend receives the code and validates the callback state before attempting an exchange.",
+      columns: [
+        { columnId: "browser", chipIds: ["session"] },
+        { columnId: "authorization", chipIds: [] },
+        { columnId: "backend", chipIds: ["authorization-code"] },
+      ],
+    },
+    {
+      id: "exchange-code",
+      title: "Exchange server-side",
+      description:
+        "The backend sends the code directly to the token endpoint. The authorization server validates it and returns an access token to the backend.",
+      columns: [
+        { columnId: "browser", chipIds: ["session"] },
+        { columnId: "authorization", chipIds: [] },
+        { columnId: "backend", chipIds: ["access-token"] },
+      ],
+      callout: "The access token never passes through the browser.",
+    },
+  ],
+};
 
-const caching = makeStepper({
+const caching: StepperSpec = {
+  version: 1,
+  archetype: "stepper",
   title: "A cache hit and miss",
   concept: "Application caching",
+  level: "student",
   summary:
     "See the same request take the fast cache path or the slower origin path.",
-  takeaway:
+  whyThisArchetype:
+    "Following a cache miss shows when a value exists at the origin, enters the cache, and reaches the client.",
+  keyTakeaway:
     "A cache improves latency only when keys, freshness, invalidation, and fallback behavior are all correct.",
-  columns: ["Client", "Cache", "Database"],
-  chips: ["GET /profile", "Cached value", "Fresh value"],
-  steps: [
-    [
-      "Check the key",
-      "The request is translated into a deterministic cache key.",
-      "010",
-    ],
-    [
-      "Miss: fetch origin",
-      "With no usable entry, the application asks the database for the current value.",
-      "202",
-    ],
-    [
-      "Populate and return",
-      "The fresh value is stored with a policy, then returned to the client.",
-      "110",
-    ],
+  columns: [
+    { id: "client", title: "Client" },
+    { id: "cache", title: "Cache" },
+    { id: "database", title: "Database" },
   ],
-});
+  chips: [
+    { id: "request", label: "GET /profile", tone: "violet" },
+    {
+      id: "cache-entry",
+      label: "New cache entry",
+      detail: "A copy stored with a freshness policy",
+      tone: "cyan",
+    },
+    {
+      id: "fresh-value",
+      label: "Fresh value",
+      detail: "The value read from the database",
+      tone: "amber",
+    },
+  ],
+  steps: [
+    {
+      id: "request",
+      title: "Receive the request",
+      description:
+        "The client asks for a profile. No response value exists in this flow yet.",
+      columns: [
+        { columnId: "client", chipIds: ["request"] },
+        { columnId: "cache", chipIds: [] },
+        { columnId: "database", chipIds: [] },
+      ],
+    },
+    {
+      id: "cache-miss",
+      title: "Check the cache",
+      description:
+        "The request maps to a deterministic key, but the cache has no usable entry: this is a miss.",
+      columns: [
+        { columnId: "client", chipIds: [] },
+        { columnId: "cache", chipIds: ["request"] },
+        { columnId: "database", chipIds: [] },
+      ],
+    },
+    {
+      id: "fetch-origin",
+      title: "Fetch from the origin",
+      description:
+        "After the miss, the application queries the database and receives the current value.",
+      columns: [
+        { columnId: "client", chipIds: [] },
+        { columnId: "cache", chipIds: [] },
+        {
+          columnId: "database",
+          chipIds: ["request", "fresh-value"],
+        },
+      ],
+    },
+    {
+      id: "populate-return",
+      title: "Populate and return",
+      description:
+        "The application stores a copy with a freshness policy and returns the fresh value to the client.",
+      columns: [
+        { columnId: "client", chipIds: ["fresh-value"] },
+        { columnId: "cache", chipIds: ["cache-entry"] },
+        { columnId: "database", chipIds: [] },
+      ],
+      callout: "The cache entry appears only after the origin read succeeds.",
+    },
+  ],
+};
 
 function makePlayground(input: {
   title: string;

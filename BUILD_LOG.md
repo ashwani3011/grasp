@@ -161,3 +161,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The ideal answers already existed in the browser response; the UI now reveals them only after submission so the learning flow is explicit without increasing API calls.
 - **Direction changes:** Batch grading remains one optional extra model call rather than one call per question.
 - **Commit:** `feat: add focused interview progression`
+
+## 2026-07-16 — Correct showcase process states
+
+- **Asked:** Fix release-blocking correctness errors in the OAuth, closures, caching, and event-loop showcase diagrams before further feature work.
+- **Implemented:** Removed the position-string Stepper factory and replaced its three generated examples with explicit lifecycle-aware specs where artifacts may be absent; corrected the event-loop stack to contain only the executing script; and added regression tests for token boundaries, closure binding identity, cache value creation, and stack-frame accuracy.
+- **Challenges / uncertainty:** The Stepper chip label is immutable across steps, so the closure uses one stable `count binding` chip while narration describes its value changing from 0 to 1. This accurately visualizes binding identity without implying a copied value.
+- **Direction changes:** Replaced the generic compact encoding with deliberate hand-authored states, as requested.
+- **Commit:** `fix: correct showcase process states`
