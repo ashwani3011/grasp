@@ -73,3 +73,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The live endpoint is intentionally committed separately after this UI milestone; all cached examples already work without it.
 - **Direction changes:** None.
 - **Commit:** `feat: add home explainer experience`
+
+## 2026-07-16 — Schema invariant coverage
+
+- **Asked:** Treat every model-produced spec as untrusted and protect renderer assumptions.
+- **Implemented:** Added tests covering all eight verified fixtures, unknown chip references, and rejection of arbitrary model fields.
+- **Challenges / uncertainty:** None.
+- **Direction changes:** None.
+- **Commit:** `test: cover explainer schema invariants`
