@@ -14,6 +14,7 @@ import { showcaseBySlug, showcaseSpecs } from "@/lib/showcase";
 import { Explainer } from "@/components/Explainer";
 import { ErrorCard } from "@/components/ErrorCard";
 import { ExplainerSkeleton } from "@/components/ExplainerSkeleton";
+import { InterviewMe } from "@/components/InterviewMe";
 import { ShareButton } from "@/components/ShareButton";
 import { Button } from "@/components/ui/button";
 
@@ -213,6 +214,11 @@ export function HomeExperience() {
           ) : (
             <>
               <Explainer spec={spec} actions={<ShareButton spec={spec} />} />
+              <InterviewMe
+                key={`${spec.title}-${spec.level}`}
+                concept={concept}
+                spec={spec}
+              />
             </>
           )}
         </div>

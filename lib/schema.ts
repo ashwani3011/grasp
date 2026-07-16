@@ -284,3 +284,23 @@ export const interviewVerdictSchema = z
     correction: z.string().trim().max(500).optional(),
   })
   .strict();
+
+export const interviewAssessmentSchema = z
+  .object({
+    results: z
+      .array(
+        z
+          .object({
+            questionId: id,
+            verdict: z.enum(["correct", "close", "needs_work"]),
+            feedback: z.string().trim().min(1).max(420),
+            correction: z.string().trim().max(500).optional(),
+          })
+          .strict(),
+      )
+      .length(3),
+  })
+  .strict();
+
+export type InterviewSet = z.infer<typeof interviewSetSchema>;
+export type InterviewAssessment = z.infer<typeof interviewAssessmentSchema>;

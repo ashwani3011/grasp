@@ -97,3 +97,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The OpenAI docs MCP required a local API key, so the current official docs and installed SDK types were used. The model is configurable through `OPENAI_MODEL`.
 - **Direction changes:** Interview-specific model calls remain in their own later commit.
 - **Commit:** `feat: add validated AI generation route`
+
+## 2026-07-16 — Interview mode
+
+- **Asked:** Add a small, high-impact interview panel with three concept-specific questions, at least one code-output question, user answers, and short verdicts with corrections.
+- **Implemented:** Added strict question and assessment schemas, validated interview generation and grading through the same one-repair trust boundary, semantic question/result ID checks, bounded request validation, and the responsive answer-and-feedback panel.
+- **Challenges / uncertainty:** Interview data is intentionally ephemeral because accounts and persistence are out of scope.
+- **Direction changes:** None.
+- **Commit:** `feat: add concept interview mode`

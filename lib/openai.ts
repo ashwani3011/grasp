@@ -3,7 +3,15 @@ import "server-only";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
-import { explainerSpecSchema, type Level } from "@/lib/schema";
+import {
+  explainerSpecSchema,
+  interviewAssessmentSchema,
+  interviewSetSchema,
+  type ExplainerSpec,
+  type InterviewAssessment,
+  type InterviewSet,
+  type Level,
+} from "@/lib/schema";
 
 const MODEL = process.env.OPENAI_MODEL ?? "gpt-5.4-mini";
 
@@ -154,6 +162,74 @@ export async function generateExplainer(concept: string, level: Level) {
         explainerSpecSchema,
         "grasp_explainer",
         explainerSystem,
+        input,
+      ),
+  });
+}
+
+const interviewSystem = `You are a concise, rigorous technical interviewer.
+Return only JSON matching the supplied schema. Never return executable UI code.
+Questions must test the supplied concept and explainer, not trivia. Exactly one or two questions should contain a short code snippet and ask what it outputs. The expected answer and rubric are private grading material and must be accurate.`;
+
+export async function generateInterview(
+  concept: string,
+  spec: ExplainerSpec,
+): Promise<InterviewSet> {
+  const prompt = `Create exactly three interview questions for ${concept}. Include at least one code_output question. Use this validated explainer as context:\n${JSON.stringify(spec)}`;
+  return validatedModelCall({
+    schema: interviewSetSchema,
+    initialPrompt: prompt,
+    request: (input) =>
+      structuredRequest(
+        interviewSetSchema,
+        "grasp_interview",
+        interviewSystem,
+        input,
+      ),
+  });
+}
+
+export async function gradeInterview({
+  concept,
+  spec,
+  questions,
+  answers,
+}: {
+  concept: string;
+  spec: ExplainerSpec;
+  questions: InterviewSet["questions"];
+  answers: Record<string, string>;
+}): Promise<InterviewAssessment> {
+  const safeQuestions = interviewSetSchema.parse({ questions });
+  const questionIds = new Set(
+    safeQuestions.questions.map((question) => question.id),
+  );
+  const assessmentSchema = interviewAssessmentSchema.superRefine(
+    (assessment, ctx) => {
+      const resultIds = new Set(
+        assessment.results.map((result) => result.questionId),
+      );
+      if (
+        resultIds.size !== questionIds.size ||
+        [...questionIds].some((id) => !resultIds.has(id))
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Results must match the three question ids",
+          path: ["results"],
+        });
+      }
+    },
+  );
+  const prompt = `Grade all three answers for ${concept}. Be brief, specific, and constructive. A correction is required when the verdict is close or needs_work. Return one result for each questionId.\n\nExplainer:\n${JSON.stringify(spec)}\n\nQuestions and answers:\n${JSON.stringify(safeQuestions.questions.map((question) => ({ question, candidateAnswer: answers[question.id] ?? "" })))}`;
+  return validatedModelCall({
+    schema: assessmentSchema,
+    initialPrompt: prompt,
+    request: (input) =>
+      structuredRequest(
+        assessmentSchema,
+        "grasp_assessment",
+        interviewSystem,
         input,
       ),
   });
