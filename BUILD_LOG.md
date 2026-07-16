@@ -113,3 +113,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The build receives a nonfunctional placeholder API key only to prove that build-time code never requires a real secret.
 - **Direction changes:** None.
 - **Commit:** `ci: enforce repository quality gates`
+
+## 2026-07-16 — Production documentation
+
+- **Asked:** Keep the repository readable for a senior reviewer and include a real README.
+- **Implemented:** Documented the trust-boundary architecture, local setup, offline behavior, quality gates, routes, project map, scope decision, and Vercel deployment.
+- **Challenges / uncertainty:** None.
+- **Direction changes:** None.
+- **Commit:** `docs: add production setup and architecture guide`
