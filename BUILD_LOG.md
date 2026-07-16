@@ -129,3 +129,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Complete coverage can grow combinatorially, so Playground control state spaces are capped at 24 combinations to match the schema’s scenario bound.
 - **Direction changes:** None.
 - **Commit:** `fix: enforce playground scenario invariants`
+
+## 2026-07-16 — Schema-aligned generation prompt
+
+- **Asked:** Align the explainer prompt with the implemented schema, add explicit audience-level behavior, keep narration concise, and preserve the one-retry repair contract.
+- **Implemented:** Updated the system prompt to use exact field vocabulary, define stable Stepper identity rules, require complete bounded Playground scenarios, define all four learning levels, prohibit extra checkpoint-style fields, and require JSON-only structured output.
+- **Challenges / uncertainty:** Checkpoints remain in the separate Interview flow to avoid duplicating or invalidating the strict explainer spec.
+- **Direction changes:** The existing repair prompt was retained because it already includes the requested validation issues plus the invalid response and a minimal-change instruction.
+- **Commit:** `feat: align generation prompt with explainer schema`

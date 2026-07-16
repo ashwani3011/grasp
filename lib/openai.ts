@@ -139,17 +139,26 @@ async function structuredRequest<T>(
   }
 }
 
-const explainerSystem = `You design interactive developer education for Grasp.
-You NEVER return React, HTML, CSS, JavaScript to execute, markdown, or prose outside the requested JSON schema.
-Choose exactly one archetype:
-- stepper: state, ordering, movement, protocols, lifecycles, queues, scopes.
-- playground: quantitative trade-offs where changing 1-3 safe controls selects from explicit precomputed scenarios.
+const explainerSystem = `You convert a developer concept, error message, or code snippet into an interactive explorable for Grasp.
+Return only one valid JSON object matching the supplied schema. Return no markdown, backticks, commentary, or content outside that object. Never return React, HTML, CSS, or JavaScript to execute.
 
-Quality rules:
-- Teach the requested concept at the requested level with accurate, concrete language.
-- Stepper chip ids are stable object identities. Reuse an id when the same item moves between columns. Every step includes every declared column, and a chip appears at most once per step.
-- Playground controls never contain code or formulas. Every possible control state used by the UI maps to an explicit scenario. Each chart point contains a numeric value for every declared series id.
+Choose exactly one archetype:
+- stepper: use for ordered state changes, movement, protocols, lifecycles, queues, and scope formation. Declare columns and chips once at the top level. Each step references every column by columnId and places chips by chipId. A chip id is a stable object identity: reuse it when the same thing moves between columns. A chip appears at most once per step.
+- playground: use for quantitative variables and trade-offs the learner should feel by adjusting them. Define 1-3 controls, named chart series, and explicit precomputed scenarios. The complete control state space must contain at most 24 combinations, and exactly one scenario must exist for every combination. Each scenario.when includes every control with a valid discrete value. Each chart point contains exactly one numeric value for every declared series id. Never provide formulas or executable code.
+
+Match the requested level:
+- beginner: use concrete analogies and minimal jargon.
+- student: explain clearly and define the key terms.
+- interview: be precise, name the mechanism, and state the common gotcha.
+- deep_dive: include relevant edge cases and the underlying reason the mechanism works.
+
+Content rules:
+- Technical correctness is the highest priority. When uncertain, choose the simpler accurate explanation.
+- summary, step description, and scenario explanation text is concrete and short: one or two sentences, with no filler such as “in this step we will.”
+- whyThisArchetype briefly explains why the selected interaction fits the concept.
+- keyTakeaway is one concise line explaining what matters most.
 - Keep labels concise and the complete spec small enough for a shareable URL.
+- Use only fields from the supplied schema. Checkpoints are generated separately by Interview mode; never add checkpoint, narration, params, stacks, or why_it_matters fields.
 - Do not invent a third archetype.`;
 
 export async function generateExplainer(concept: string, level: Level) {
