@@ -29,4 +29,48 @@ describe("explainer schemas", () => {
     const invalid = { ...showcaseSpecs[0], renderReact: "alert('nope')" };
     expect(explainerSpecSchema.safeParse(invalid).success).toBe(false);
   });
+
+  it("rejects playgrounds with incomplete scenario coverage", () => {
+    const source = showcaseSpecs.find(
+      (spec) => spec.archetype === "playground",
+    );
+    expect(source?.archetype).toBe("playground");
+    if (!source || source.archetype !== "playground") return;
+
+    const invalid = structuredClone(source);
+    invalid.scenarios.pop();
+    const result = explainerSpecSchema.safeParse(invalid);
+
+    expect(result.success).toBe(false);
+    if (!result.success)
+      expect(
+        result.error.issues.some((issue) =>
+          issue.message.includes("cover every control state"),
+        ),
+      ).toBe(true);
+  });
+
+  it("rejects playground defaults and chart values outside their domains", () => {
+    const source = showcaseSpecs.find(
+      (spec) => spec.archetype === "playground",
+    );
+    expect(source?.archetype).toBe("playground");
+    if (!source || source.archetype !== "playground") return;
+
+    const invalid = structuredClone(source);
+    const control = invalid.controls[0];
+    if (control.kind !== "slider") throw new Error("Fixture must use a slider");
+    control.defaultValue = control.max + control.step;
+    invalid.scenarios[0].chartData[0].values.unknown = 42;
+    const result = explainerSpecSchema.safeParse(invalid);
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const messages = result.error.issues.map((issue) => issue.message);
+      expect(messages).toContain(
+        "Slider defaultValue must be one of its discrete values",
+      );
+      expect(messages).toContain("Unknown series value: unknown");
+    }
+  });
 });

@@ -121,3 +121,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** None.
 - **Direction changes:** None.
 - **Commit:** `docs: add production setup and architecture guide`
+
+## 2026-07-16 — Playground cross-field validation
+
+- **Asked:** Validate that Playground controls and scenarios are safe and complete rather than relying on prompt compliance.
+- **Implemented:** Added discrete slider validation, valid defaults, unique select values, bounded state-space checks, complete and unique scenario coverage, exact control domains, unique scenario and metric IDs, and exact chart-series references, with regression tests.
+- **Challenges / uncertainty:** Complete coverage can grow combinatorially, so Playground control state spaces are capped at 24 combinations to match the schema’s scenario bound.
+- **Direction changes:** None.
+- **Commit:** `fix: enforce playground scenario invariants`

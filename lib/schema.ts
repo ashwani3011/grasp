@@ -212,6 +212,8 @@ export const playgroundSpecSchema = baseSpec
   .superRefine((spec, ctx) => {
     const controlIds = new Set(spec.controls.map((control) => control.id));
     const seriesIds = new Set(spec.series.map((series) => series.id));
+    const scenarioIds = new Set(spec.scenarios.map((scenario) => scenario.id));
+    const controlDomains = new Map<string, Array<string | number | boolean>>();
     if (controlIds.size !== spec.controls.length)
       ctx.addIssue({
         code: "custom",
@@ -224,15 +226,162 @@ export const playgroundSpecSchema = baseSpec
         message: "Series ids must be unique",
         path: ["series"],
       });
+    if (scenarioIds.size !== spec.scenarios.length)
+      ctx.addIssue({
+        code: "custom",
+        message: "Scenario ids must be unique",
+        path: ["scenarios"],
+      });
+
+    spec.controls.forEach((control, controlIndex) => {
+      if (control.kind === "slider") {
+        if (control.min >= control.max) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Slider min must be less than max",
+            path: ["controls", controlIndex, "min"],
+          });
+          return;
+        }
+
+        const rawStepCount = (control.max - control.min) / control.step;
+        const stepCount = Math.round(rawStepCount);
+        if (Math.abs(rawStepCount - stepCount) > 1e-8) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Slider step must divide the min-to-max range exactly",
+            path: ["controls", controlIndex, "step"],
+          });
+          return;
+        }
+
+        const values = Array.from(
+          { length: stepCount + 1 },
+          (_, index) => control.min + index * control.step,
+        );
+        if (values.length > 12) {
+          ctx.addIssue({
+            code: "custom",
+            message: "A slider may expose at most 12 discrete values",
+            path: ["controls", controlIndex],
+          });
+        }
+        if (
+          !values.some(
+            (value) => Math.abs(value - control.defaultValue) <= 1e-8,
+          )
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Slider defaultValue must be one of its discrete values",
+            path: ["controls", controlIndex, "defaultValue"],
+          });
+        }
+        controlDomains.set(control.id, values);
+      }
+
+      if (control.kind === "select") {
+        const values = control.options.map((option) => option.value);
+        if (new Set(values).size !== values.length) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Select option values must be unique",
+            path: ["controls", controlIndex, "options"],
+          });
+        }
+        if (!values.includes(control.defaultValue)) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Select defaultValue must match an option value",
+            path: ["controls", controlIndex, "defaultValue"],
+          });
+        }
+        controlDomains.set(control.id, values);
+      }
+
+      if (control.kind === "toggle") {
+        controlDomains.set(control.id, [false, true]);
+      }
+    });
+
+    const combinationCount = spec.controls.reduce(
+      (count, control) => count * (controlDomains.get(control.id)?.length ?? 0),
+      1,
+    );
+    if (combinationCount > 24) {
+      ctx.addIssue({
+        code: "custom",
+        message: "The control state space may contain at most 24 combinations",
+        path: ["controls"],
+      });
+    }
+
+    const seenStates = new Set<string>();
     spec.scenarios.forEach((scenario, index) => {
-      for (const controlId of Object.keys(scenario.when))
+      const whenKeys = Object.keys(scenario.when);
+      for (const controlId of whenKeys)
         if (!controlIds.has(controlId))
           ctx.addIssue({
             code: "custom",
             message: `Unknown control: ${controlId}`,
             path: ["scenarios", index, "when"],
           });
+      for (const control of spec.controls) {
+        if (!(control.id in scenario.when)) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Missing control state: ${control.id}`,
+            path: ["scenarios", index, "when"],
+          });
+          continue;
+        }
+        const value = scenario.when[control.id];
+        const domain = controlDomains.get(control.id) ?? [];
+        const matchesDomain = domain.some((allowed) =>
+          typeof allowed === "number" && typeof value === "number"
+            ? Math.abs(allowed - value) <= 1e-8
+            : allowed === value,
+        );
+        if (!matchesDomain) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Invalid value for control: ${control.id}`,
+            path: ["scenarios", index, "when", control.id],
+          });
+        }
+      }
+
+      if (whenKeys.length === controlIds.size) {
+        const stateKey = JSON.stringify(
+          spec.controls.map((control) => scenario.when[control.id]),
+        );
+        if (seenStates.has(stateKey)) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Scenario control states must be unique",
+            path: ["scenarios", index, "when"],
+          });
+        }
+        seenStates.add(stateKey);
+      }
+
+      const metricIds = scenario.metrics.map((metric) => metric.id);
+      if (new Set(metricIds).size !== metricIds.length) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Metric ids must be unique within a scenario",
+          path: ["scenarios", index, "metrics"],
+        });
+      }
+
       scenario.chartData.forEach((point, pointIndex) => {
+        for (const valueSeriesId of Object.keys(point.values))
+          if (!seriesIds.has(valueSeriesId))
+            ctx.addIssue({
+              code: "custom",
+              message: `Unknown series value: ${valueSeriesId}`,
+              path: ["scenarios", index, "chartData", pointIndex, "values"],
+            });
         for (const seriesId of seriesIds)
           if (!(seriesId in point.values))
             ctx.addIssue({
@@ -242,6 +391,18 @@ export const playgroundSpecSchema = baseSpec
             });
       });
     });
+
+    if (
+      combinationCount > 0 &&
+      combinationCount <= 24 &&
+      spec.scenarios.length !== combinationCount
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: `Expected exactly ${combinationCount} scenarios to cover every control state`,
+        path: ["scenarios"],
+      });
+    }
   });
 
 export const explainerSpecSchema = z.discriminatedUnion("archetype", [
