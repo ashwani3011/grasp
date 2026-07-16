@@ -65,3 +65,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Playground interactivity is intentionally data-driven; model-authored code and formulas are never executed.
 - **Direction changes:** Flow remains excluded until both required archetypes are polished.
 - **Commit:** `feat: add hardened explainer renderers`
+
+## 2026-07-16 — Home explainer experience
+
+- **Asked:** Add the hero, concept input, visible level selector, cached example chips, loading skeletons, friendly errors, and the rendered result.
+- **Implemented:** Added the responsive primary flow with the Event Loop explainer visible by default, instant cached-example switching, level controls, generation request states, retry handling, navigation, and product copy.
+- **Challenges / uncertainty:** The live endpoint is intentionally committed separately after this UI milestone; all cached examples already work without it.
+- **Direction changes:** None.
+- **Commit:** `feat: add home explainer experience`
