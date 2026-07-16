@@ -153,3 +153,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Difficulty is a semantic teaching property, so ordering is prompt-enforced while structural identity and answer coverage are Zod-enforced.
 - **Direction changes:** The mandatory code-output question remains unconditional to match the original product specification.
 - **Commit:** `fix: enforce interview request invariants`
+
+## 2026-07-16 — Focused interview progression
+
+- **Asked:** Present one interview question at a time without adding multiple grading calls.
+- **Implemented:** Added a three-stage easy-to-hard progression, answer-gated navigation, animated question transitions, one batch grading request after question three, result-by-result review, and reference answers revealed only after grading, with an end-to-end component interaction test.
+- **Challenges / uncertainty:** The ideal answers already existed in the browser response; the UI now reveals them only after submission so the learning flow is explicit without increasing API calls.
+- **Direction changes:** Batch grading remains one optional extra model call rather than one call per question.
+- **Commit:** `feat: add focused interview progression`
