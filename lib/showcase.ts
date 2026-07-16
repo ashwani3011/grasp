@@ -277,11 +277,11 @@ const oauth: StepperSpec = {
 const caching: StepperSpec = {
   version: 1,
   archetype: "stepper",
-  title: "A cache hit and miss",
+  title: "A cache miss lifecycle",
   concept: "Application caching",
   level: "student",
   summary:
-    "See the same request take the fast cache path or the slower origin path.",
+    "Follow a cache miss from the client to the origin, then back through cache population and response.",
   whyThisArchetype:
     "Following a cache miss shows when a value exists at the origin, enters the cache, and reaches the client.",
   keyTakeaway:

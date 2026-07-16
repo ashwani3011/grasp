@@ -177,3 +177,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** A production B-tree has a high branching factor and usually less work than log₂ n; the chart is explicitly labeled as relative theoretical work and the explanation states that simplification. Debounce explicitly assumes events remain inside one delay window.
 - **Direction changes:** Retained the cache hit-rate relationship because validation confirmed it was already mathematically correct, but rewrote it as an explicit concept-owned spec.
 - **Commit:** `fix: correct showcase playground math`
+
+## 2026-07-16 — Align caching showcase promise
+
+- **Asked:** Correct the incoherent caching showcase as part of the release-blocking content audit.
+- **Implemented:** Renamed and rewrote the showcase summary to promise the cache-miss lifecycle it actually visualizes, with a regression assertion alongside the lifecycle checks.
+- **Challenges / uncertainty:** A linear Stepper cannot honestly present both hit and miss branches without a branching archetype, so the copy now precisely scopes the existing explorable.
+- **Direction changes:** Chose accurate scope over implying a cache-hit branch that is not rendered.
+- **Commit:** `fix: align caching showcase promise`

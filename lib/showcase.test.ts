@@ -58,6 +58,7 @@ describe("showcase content correctness", () => {
 
   it("creates cache values only after a miss reaches the origin", () => {
     const spec = stepper("caching");
+    expect(spec.title).toBe("A cache miss lifecycle");
     for (const stepIndex of [0, 1]) {
       expect(chipColumn(spec, stepIndex, "fresh-value")).toBeUndefined();
       expect(chipColumn(spec, stepIndex, "cache-entry")).toBeUndefined();
