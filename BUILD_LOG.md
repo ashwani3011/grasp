@@ -49,3 +49,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Next.js updated these settings when the development server first started.
 - **Direction changes:** None.
 - **Commit:** `chore: align typescript config with nextjs`
+
+## 2026-07-16 — Application design foundation
+
+- **Asked:** Build a clean, tasteful, minimal, responsive interface with real typography and reliable production behavior.
+- **Implemented:** Added the root metadata, self-hosted Manrope and JetBrains Mono fonts, global color/typography rules, responsive motion preferences, and the ambient page background.
+- **Challenges / uncertainty:** Remote Google font fetching broke offline production builds, so the fonts are packaged locally.
+- **Direction changes:** None.
+- **Commit:** `feat: add application design foundation`
