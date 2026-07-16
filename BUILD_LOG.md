@@ -185,3 +185,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** A linear Stepper cannot honestly present both hit and miss branches without a branching archetype, so the copy now precisely scopes the existing explorable.
 - **Direction changes:** Chose accurate scope over implying a cache-hit branch that is not rendered.
 - **Commit:** `fix: align caching showcase promise`
+
+## 2026-07-17 — Add bounded AI request limiters
+
+- **Asked:** Protect the public AI endpoints from judge traffic and casual abuse without adding infrastructure outside the hackathon scope.
+- **Implemented:** Added a dependency-free, bounded-memory token bucket and an idempotent per-instance concurrency limiter, with deterministic tests for bursts, refill timing, client isolation, memory bounds, and lease release.
+- **Challenges / uncertainty:** Serverless instances do not share memory and may recycle at any time, so this is intentionally documented as best-effort protection rather than a distributed quota.
+- **Direction changes:** Kept the implementation in-memory as requested; no database or external rate-limit service was introduced.
+- **Commit:** `feat: add bounded AI request limiters`
