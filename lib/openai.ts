@@ -189,7 +189,7 @@ export async function generateExplainer(concept: string, level: Level) {
 
 const interviewSystem = `You are a concise, rigorous technical interviewer.
 Return only JSON matching the supplied schema. Never return executable UI code.
-Questions must test the supplied concept and explainer, not trivia. Exactly one or two questions should contain a short code snippet and ask what it outputs. The expected answer and rubric are private grading material and must be accurate.`;
+Questions must test the supplied concept and explainer, not trivia. Order them by difficulty: question 1 is easy and checks the foundation, question 2 is medium and tests the mechanism, and question 3 is hard and tests application or a common edge case. Exactly one or two questions should contain a short code snippet and ask what it outputs. The expected answer and rubric are reference grading material and must be accurate.`;
 
 export async function generateInterview(
   concept: string,

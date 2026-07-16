@@ -426,17 +426,25 @@ export const interviewQuestionSchema = z
   })
   .strict();
 
-export const interviewSetSchema = z
-  .object({ questions: z.array(interviewQuestionSchema).length(3) })
-  .strict()
-  .superRefine((set, ctx) => {
-    if (!set.questions.some((question) => question.kind === "code_output"))
+const interviewQuestionsSchema = z
+  .array(interviewQuestionSchema)
+  .length(3)
+  .superRefine((questions, ctx) => {
+    if (new Set(questions.map((question) => question.id)).size !== 3)
+      ctx.addIssue({
+        code: "custom",
+        message: "Question ids must be unique",
+      });
+    if (!questions.some((question) => question.kind === "code_output"))
       ctx.addIssue({
         code: "custom",
         message: "At least one code_output question is required",
-        path: ["questions"],
       });
   });
+
+export const interviewSetSchema = z
+  .object({ questions: interviewQuestionsSchema })
+  .strict();
 
 export const interviewVerdictSchema = z
   .object({

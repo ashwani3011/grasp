@@ -145,3 +145,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** SDK transport retries remain enabled independently of the single semantic repair because they improve resilience to transient network failures.
 - **Direction changes:** None.
 - **Commit:** `fix: preserve context in bounded self-repair`
+
+## 2026-07-16 — Interview request integrity
+
+- **Asked:** Complete the remaining interview-mode validation improvements while preserving one optional batch grading call.
+- **Implemented:** Required easy-to-hard question ordering in the model prompt, enforced unique question IDs, and rejected grading requests unless answer keys match all three question IDs exactly, with schema and route tests.
+- **Challenges / uncertainty:** Difficulty is a semantic teaching property, so ordering is prompt-enforced while structural identity and answer coverage are Zod-enforced.
+- **Direction changes:** The mandatory code-output question remains unconditional to match the original product specification.
+- **Commit:** `fix: enforce interview request invariants`

@@ -22,6 +22,21 @@ describe("interview schemas", () => {
     expect(interviewSetSchema.safeParse(withoutCode).success).toBe(true);
   });
 
+  it("requires stable unique question ids", () => {
+    const questions = [
+      { ...question, id: "q-1", kind: "concept" },
+      { ...question, id: "q-1", kind: "code_output" },
+      { ...question, id: "q-3", kind: "scenario" },
+    ];
+
+    const result = interviewSetSchema.safeParse({ questions });
+    expect(result.success).toBe(false);
+    if (!result.success)
+      expect(result.error.issues.map((issue) => issue.message)).toContain(
+        "Question ids must be unique",
+      );
+  });
+
   it("requires exactly three grading results", () => {
     const result = {
       questionId: "q-1",
