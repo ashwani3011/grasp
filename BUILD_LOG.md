@@ -209,3 +209,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** OpenAI project monthly budgets are monitoring thresholds rather than hard caps, so the documentation explicitly avoids presenting them as an enforcement boundary.
 - **Direction changes:** Separated account-level configuration from repository code because those controls require the project owner in the OpenAI dashboard.
 - **Commit:** `docs: document AI deployment safeguards`
+
+## 2026-07-17 — Repair live structured generation
+
+- **Asked:** Exercise the locally configured OpenAI key through the real Grasp UI and verify the production flow.
+- **Implemented:** Reproduced the live failures across generation and Interview mode; added an object-rooted generation envelope; represented dynamic Playground maps as bounded identifier/value arrays on the model wire; normalized them back into renderer records; made optional model fields required-but-nullable; and added SDK conversion plus normalization regression tests.
+- **Challenges / uncertainty:** The key, quota, model, and plain Responses API path were healthy. Grasp's schemas violated three structured-output constraints: a root union, arbitrary-key records that emit unsupported `propertyNames`, and optional fields that were not nullable.
+- **Direction changes:** Added a transport-only schema tailored to OpenAI's strict JSON Schema subset while preserving the existing renderer schema, Zod trust boundary, complete scenario validation, and one-repair behavior.
+- **Commit:** `fix: repair live structured generation`

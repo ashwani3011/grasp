@@ -1,11 +1,12 @@
 import {
   explainerSpecSchema,
   type ExplainerSpec,
-  type PlaygroundSpec,
-  type StepperSpec,
+  type ExplainerSpecInput,
+  type PlaygroundSpecInput,
+  type StepperSpecInput,
 } from "@/lib/schema";
 
-const eventLoop: StepperSpec = {
+const eventLoop: StepperSpecInput = {
   version: 1,
   archetype: "stepper",
   title: "The JavaScript event loop",
@@ -97,7 +98,7 @@ const eventLoop: StepperSpec = {
   ],
 };
 
-const closures: StepperSpec = {
+const closures: StepperSpecInput = {
   version: 1,
   archetype: "stepper",
   title: "Closures keep scope alive",
@@ -186,7 +187,7 @@ const closures: StepperSpec = {
   ],
 };
 
-const oauth: StepperSpec = {
+const oauth: StepperSpecInput = {
   version: 1,
   archetype: "stepper",
   title: "OAuth authorization code flow",
@@ -274,7 +275,7 @@ const oauth: StepperSpec = {
   ],
 };
 
-const caching: StepperSpec = {
+const caching: StepperSpecInput = {
   version: 1,
   archetype: "stepper",
   title: "A cache miss lifecycle",
@@ -369,7 +370,7 @@ function sampleInputs(max: number) {
 }
 
 const tableSizes = [1_000, 10_000, 100_000];
-const indexing: PlaygroundSpec = {
+const indexing: PlaygroundSpecInput = {
   version: 1,
   archetype: "playground",
   title: "Database indexing",
@@ -435,7 +436,7 @@ const indexing: PlaygroundSpec = {
 };
 
 const inputSizes = [10, 50, 100];
-const bigO: PlaygroundSpec = {
+const bigO: PlaygroundSpecInput = {
   version: 1,
   archetype: "playground",
   title: "Big-O growth",
@@ -495,7 +496,7 @@ const bigO: PlaygroundSpec = {
 };
 
 const requestRates = [100, 1_000, 10_000];
-const cacheRates: PlaygroundSpec = {
+const cacheRates: PlaygroundSpecInput = {
   version: 1,
   archetype: "playground",
   title: "Cache hit-rate economics",
@@ -555,7 +556,7 @@ const cacheRates: PlaygroundSpec = {
 };
 
 const burstSizes = [5, 20, 100];
-const debounce: PlaygroundSpec = {
+const debounce: PlaygroundSpecInput = {
   version: 1,
   archetype: "playground",
   title: "Debounce noisy input",
@@ -614,7 +615,7 @@ const debounce: PlaygroundSpec = {
   })),
 };
 
-const rawSpecs: ExplainerSpec[] = [
+const rawSpecs: ExplainerSpecInput[] = [
   eventLoop,
   indexing,
   closures,

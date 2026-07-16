@@ -5,6 +5,8 @@ import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 import {
   explainerSpecSchema,
+  generatedExplainerSchema,
+  generatedExplainerWireSchema,
   interviewAssessmentSchema,
   interviewSetSchema,
   type ExplainerSpec,
@@ -155,7 +157,7 @@ Return only one valid JSON object matching the supplied schema. Return no markdo
 
 Choose exactly one archetype:
 - stepper: use for ordered state changes, movement, protocols, lifecycles, queues, and scope formation. Declare columns and chips once at the top level. Each step references every column by columnId and places chips by chipId. A chip id is a stable object identity: reuse it when the same thing moves between columns. A chip appears at most once per step.
-- playground: use for quantitative variables and trade-offs the learner should feel by adjusting them. Define 1-3 controls, named chart series, and explicit precomputed scenarios. The complete control state space must contain at most 24 combinations, and exactly one scenario must exist for every combination. Each scenario.when includes every control with a valid discrete value. Each chart point contains exactly one numeric value for every declared series id. Never provide formulas or executable code.
+- playground: use for quantitative variables and trade-offs the learner should feel by adjusting them. Define 1-3 controls, named chart series, and explicit precomputed scenarios. The complete control state space must contain at most 24 combinations, and exactly one scenario must exist for every combination. Each scenario.when is an array containing one {controlId, value} entry for every control. Each chart point values field is an array containing one {seriesId, value} entry for every declared series. Never provide formulas or executable code.
 
 Match the requested level:
 - beginner: use concrete analogies and minimal jargon.
@@ -174,17 +176,18 @@ Content rules:
 
 export async function generateExplainer(concept: string, level: Level) {
   const prompt = `Create an explorable explanation for this input:\n\n${concept}\n\nAudience level: ${level}.`;
-  return validatedModelCall({
-    schema: explainerSpecSchema,
+  const generated = await validatedModelCall({
+    schema: generatedExplainerSchema,
     initialPrompt: prompt,
     request: (input) =>
       structuredRequest(
-        explainerSpecSchema,
+        generatedExplainerWireSchema,
         "grasp_explainer",
         explainerSystem,
         input,
       ),
   });
+  return explainerSpecSchema.parse(generated);
 }
 
 const interviewSystem = `You are a concise, rigorous technical interviewer.

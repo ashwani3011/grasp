@@ -27,13 +27,17 @@ const chipSchema = z
   .object({
     id,
     label: shortText,
-    detail: z.string().trim().max(240).optional(),
+    detail: z.string().trim().max(240).nullable().default(null),
     tone: z.enum(["violet", "cyan", "amber", "rose", "slate"]).default("slate"),
   })
   .strict();
 
 const columnSchema = z
-  .object({ id, title: shortText, hint: z.string().trim().max(120).optional() })
+  .object({
+    id,
+    title: shortText,
+    hint: z.string().trim().max(120).nullable().default(null),
+  })
   .strict();
 
 const stepColumnSchema = z
@@ -46,7 +50,7 @@ const stepSchema = z
     title: shortText,
     description: bodyText,
     columns: z.array(stepColumnSchema).min(2).max(4),
-    callout: z.string().trim().max(220).optional(),
+    callout: z.string().trim().max(220).nullable().default(null),
   })
   .strict();
 
@@ -139,7 +143,7 @@ const controlSchema = z.discriminatedUnion("kind", [
       max: z.number().finite(),
       step: z.number().positive(),
       defaultValue: z.number().finite(),
-      suffix: z.string().max(12).optional(),
+      suffix: z.string().max(12).nullable().default(null),
     })
     .strict(),
   z
@@ -171,7 +175,7 @@ const metricSchema = z
     id,
     label: shortText,
     value: shortText,
-    note: z.string().trim().max(120).optional(),
+    note: z.string().trim().max(120).nullable().default(null),
     tone: z.enum(["good", "neutral", "warning"]).default("neutral"),
   })
   .strict();
@@ -410,17 +414,120 @@ export const explainerSpecSchema = z.discriminatedUnion("archetype", [
   playgroundSpecSchema,
 ]);
 
+const generatedControlValuesSchema = z
+  .array(z.object({ controlId: id, value: optionValueSchema }).strict())
+  .min(1)
+  .max(3)
+  .superRefine((values, ctx) => {
+    if (new Set(values.map((value) => value.controlId)).size !== values.length)
+      ctx.addIssue({
+        code: "custom",
+        message: "controlId values must be unique",
+      });
+  });
+
+const generatedSeriesValuesSchema = z
+  .array(z.object({ seriesId: id, value: z.number().finite() }).strict())
+  .min(1)
+  .max(4)
+  .superRefine((values, ctx) => {
+    if (new Set(values.map((value) => value.seriesId)).size !== values.length)
+      ctx.addIssue({
+        code: "custom",
+        message: "seriesId values must be unique",
+      });
+  });
+
+const generatedPlaygroundSpecSchema = baseSpec
+  .extend({
+    archetype: z.literal("playground"),
+    controls: z.array(controlSchema).min(1).max(3),
+    series: z.array(seriesSchema).min(1).max(4),
+    xAxisLabel: shortText,
+    yAxisLabel: shortText,
+    scenarios: z
+      .array(
+        z
+          .object({
+            id,
+            when: generatedControlValuesSchema,
+            explanation: bodyText,
+            metrics: z.array(metricSchema).min(1).max(4),
+            chartData: z
+              .array(
+                z
+                  .object({
+                    x: z.string().max(40),
+                    values: generatedSeriesValuesSchema,
+                  })
+                  .strict(),
+              )
+              .min(2)
+              .max(16),
+          })
+          .strict(),
+      )
+      .min(2)
+      .max(24),
+  })
+  .strict();
+
+/** The OpenAI transport schema avoids a root union and arbitrary-key records. */
+export const generatedExplainerWireSchema = z
+  .object({
+    spec: z.discriminatedUnion("archetype", [
+      stepperSpecSchema,
+      generatedPlaygroundSpecSchema,
+    ]),
+  })
+  .strict();
+
+/** Normalizes the transport shape, then applies the renderer's trust boundary. */
+export const generatedExplainerSchema = generatedExplainerWireSchema
+  .transform(({ spec }) => {
+    if (spec.archetype === "stepper") return spec;
+    return {
+      ...spec,
+      scenarios: spec.scenarios.map((scenario) => ({
+        ...scenario,
+        when: Object.fromEntries(
+          scenario.when.map(({ controlId, value }) => [controlId, value]),
+        ),
+        chartData: scenario.chartData.map((point) => ({
+          ...point,
+          values: Object.fromEntries(
+            point.values.map(({ seriesId, value }) => [seriesId, value]),
+          ),
+        })),
+      })),
+    };
+  })
+  .transform((spec, ctx) => {
+    const parsed = explainerSpecSchema.safeParse(spec);
+    if (parsed.success) return parsed.data;
+    for (const issue of parsed.error.issues)
+      ctx.addIssue({
+        code: "custom",
+        message: issue.message,
+        path: issue.path,
+      });
+    return z.NEVER;
+  });
+
 export type Level = z.infer<typeof levelSchema>;
-export type StepperSpec = z.infer<typeof stepperSpecSchema>;
-export type PlaygroundSpec = z.infer<typeof playgroundSpecSchema>;
-export type ExplainerSpec = z.infer<typeof explainerSpecSchema>;
+export type StepperSpec = z.output<typeof stepperSpecSchema>;
+export type PlaygroundSpec = z.output<typeof playgroundSpecSchema>;
+export type ExplainerSpec = z.output<typeof explainerSpecSchema>;
+export type StepperSpecInput = z.input<typeof stepperSpecSchema>;
+export type PlaygroundSpecInput = z.input<typeof playgroundSpecSchema>;
+export type ExplainerSpecInput = z.input<typeof explainerSpecSchema>;
 
 export const interviewQuestionSchema = z
   .object({
     id,
     question: bodyText,
     kind: z.enum(["concept", "code_output", "scenario"]),
-    code: z.string().max(1200).optional(),
+    code: z.string().max(1200).nullable().default(null),
     expectedAnswer: z.string().trim().min(1).max(500),
     rubric: z.string().trim().min(1).max(500),
   })
@@ -450,7 +557,7 @@ export const interviewVerdictSchema = z
   .object({
     verdict: z.enum(["correct", "close", "needs_work"]),
     feedback: z.string().trim().min(1).max(420),
-    correction: z.string().trim().max(500).optional(),
+    correction: z.string().trim().max(500).nullable().default(null),
   })
   .strict();
 
@@ -463,7 +570,7 @@ export const interviewAssessmentSchema = z
             questionId: id,
             verdict: z.enum(["correct", "close", "needs_work"]),
             feedback: z.string().trim().min(1).max(420),
-            correction: z.string().trim().max(500).optional(),
+            correction: z.string().trim().max(500).nullable().default(null),
           })
           .strict(),
       )

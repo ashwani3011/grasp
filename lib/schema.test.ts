@@ -1,8 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { explainerSpecSchema } from "@/lib/schema";
+import { zodTextFormat } from "openai/helpers/zod";
+import {
+  explainerSpecSchema,
+  generatedExplainerSchema,
+  generatedExplainerWireSchema,
+  interviewAssessmentSchema,
+  interviewSetSchema,
+} from "@/lib/schema";
 import { showcaseSpecs } from "@/lib/showcase";
 
 describe("explainer schemas", () => {
+  it("provides an object-rooted schema for OpenAI structured output", () => {
+    expect(() =>
+      zodTextFormat(generatedExplainerWireSchema, "grasp_explainer"),
+    ).not.toThrow();
+    expect(() =>
+      zodTextFormat(interviewSetSchema, "grasp_interview"),
+    ).not.toThrow();
+    expect(() =>
+      zodTextFormat(interviewAssessmentSchema, "grasp_assessment"),
+    ).not.toThrow();
+  });
+
+  it("normalizes generated playground arrays into validated renderer maps", () => {
+    const source = showcaseSpecs.find(
+      (spec) => spec.archetype === "playground",
+    );
+    if (!source || source.archetype !== "playground")
+      throw new Error("Expected a playground showcase");
+
+    const wireSpec = {
+      ...source,
+      scenarios: source.scenarios.map((scenario) => ({
+        ...scenario,
+        when: Object.entries(scenario.when).map(([controlId, value]) => ({
+          controlId,
+          value,
+        })),
+        chartData: scenario.chartData.map((point) => ({
+          ...point,
+          values: Object.entries(point.values).map(([seriesId, value]) => ({
+            seriesId,
+            value,
+          })),
+        })),
+      })),
+    };
+
+    expect(generatedExplainerSchema.parse({ spec: wireSpec })).toEqual(source);
+  });
+
   it("accepts every hand-verified showcase spec", () => {
     expect(showcaseSpecs).toHaveLength(8);
     for (const spec of showcaseSpecs)

@@ -65,6 +65,7 @@ describe("interview route", () => {
         questionId: question.id,
         verdict: "correct" as const,
         feedback: "Correct.",
+        correction: null,
       })),
     });
 
