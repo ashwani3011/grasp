@@ -41,3 +41,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The initial repository commit predated the formatting setup, so these existing files needed a one-time mechanical pass.
 - **Direction changes:** None.
 - **Commit:** `style: format existing foundation files`
+
+## 2026-07-16 — Next.js TypeScript alignment
+
+- **Asked:** Keep meaningful configuration changes focused.
+- **Implemented:** Accepted Next.js-generated JSX and development type include settings while preserving strict TypeScript and the `@/` alias.
+- **Challenges / uncertainty:** Next.js updated these settings when the development server first started.
+- **Direction changes:** None.
+- **Commit:** `chore: align typescript config with nextjs`
