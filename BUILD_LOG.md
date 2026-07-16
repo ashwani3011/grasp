@@ -201,3 +201,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** IP-based limiting can group users behind a shared NAT, so the burst permits a complete generation-plus-interview flow and a level rerun before throttling sustained traffic.
 - **Direction changes:** Protected `/api/interview` as well as `/api/generate` because question generation and grading both spend model capacity.
 - **Commit:** `feat: protect public AI routes`
+
+## 2026-07-17 — Document AI deployment safeguards
+
+- **Asked:** Keep the OpenAI key funded and the public demo dependable through judging traffic.
+- **Implemented:** Documented the in-app limits and their serverless boundaries, plus the manual launch checklist for a dedicated restricted OpenAI project, model-level rate limits, layered budget alerts, and offline-path verification.
+- **Challenges / uncertainty:** OpenAI project monthly budgets are monitoring thresholds rather than hard caps, so the documentation explicitly avoids presenting them as an enforcement boundary.
+- **Direction changes:** Separated account-level configuration from repository code because those controls require the project owner in the OpenAI dashboard.
+- **Commit:** `docs: document AI deployment safeguards`

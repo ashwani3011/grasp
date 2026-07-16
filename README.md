@@ -20,6 +20,7 @@ user input
 - The Playground selects explicit, precomputed scenarios. It does not execute model-authored formulas or code.
 - Shared explainers encode the validated spec into the URL and require no database or OpenAI request to render.
 - Eight verified showcase specs ship with the app and render instantly.
+- Public AI routes use a bounded per-IP token bucket and per-instance concurrency ceiling before parsing request bodies.
 
 ## Stack
 
@@ -83,7 +84,9 @@ components/
   ArchetypeBadge.tsx
   InterviewMe.tsx
 lib/
+  ai-request-guard.ts
   openai.ts
+  rate-limit.ts
   schema.ts
   share.ts
   showcase.ts
@@ -94,6 +97,15 @@ lib/
 ## Deployment
 
 Deploy the repository as a standard Next.js project on Vercel and set `OPENAI_API_KEY` as a server-side environment variable. Optionally set `OPENAI_MODEL`. No database, authentication provider, or persistent volume is required.
+
+Before making the deployment public:
+
+1. Create a dedicated OpenAI project and restricted API key for Grasp.
+2. In the project Limits page, allow only the deployed model and set conservative request/token rate limits.
+3. Configure monthly budget alerts at multiple thresholds. OpenAI project budgets are soft alerts, not hard spending caps: requests continue after the budget is exceeded.
+4. Verify that cached showcases, gallery entries, and shared URLs render without `OPENAI_API_KEY`; these paths should remain available if live generation is throttled or offline.
+
+The application limiter permits a burst of six AI requests per client IP, refills one token every 20 seconds, and allows four concurrent AI operations per server instance. Rejections return JSON with `Retry-After`, and the existing UI displays that message. Because Vercel instances do not share memory and may restart, this is best-effort abuse resistance—not a durable global quota. A shared rate-limit store would be the next step if the no-database constraint changes.
 
 ## Engineering history
 
