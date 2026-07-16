@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { StepperSpec } from "@/lib/schema";
+import type { PlaygroundSpec, StepperSpec } from "@/lib/schema";
 import { showcaseBySlug } from "@/lib/showcase";
 
 function stepper(slug: string): StepperSpec {
@@ -13,6 +13,13 @@ function chipColumn(spec: StepperSpec, stepIndex: number, chipId: string) {
   return spec.steps[stepIndex].columns.find((column) =>
     column.chipIds.includes(chipId),
   )?.columnId;
+}
+
+function playground(slug: string): PlaygroundSpec {
+  const spec = showcaseBySlug[slug];
+  if (spec.archetype !== "playground")
+    throw new Error(`${slug} must be a playground showcase`);
+  return spec;
 }
 
 describe("showcase content correctness", () => {
@@ -58,5 +65,44 @@ describe("showcase content correctness", () => {
     expect(chipColumn(spec, 2, "fresh-value")).toBe("database");
     expect(chipColumn(spec, 3, "cache-entry")).toBe("cache");
     expect(chipColumn(spec, 3, "fresh-value")).toBe("client");
+  });
+
+  it("plots quadratic Big-O work as a curve rather than a scaled line", () => {
+    const spec = playground("big-o");
+    for (const point of spec.scenarios[2].chartData) {
+      const input = Number(point.x);
+      expect(point.values.baseline).toBe(input ** 2);
+      expect(point.values.optimized).toBe(input);
+    }
+  });
+
+  it("plots indexing as linear scan work versus logarithmic lookup work", () => {
+    const spec = playground("database-indexing");
+    const endpointGaps = spec.scenarios.map((scenario) => {
+      const point = scenario.chartData.at(-1);
+      if (!point) throw new Error("Indexing scenario must contain chart data");
+      const rows = Number(point.x);
+      expect(point.values.baseline).toBe(rows);
+      expect(point.values.optimized).toBe(Math.ceil(Math.log2(rows)));
+      return point.values.baseline / point.values.optimized;
+    });
+    expect(endpointGaps[1]).toBeGreaterThan(endpointGaps[0]);
+    expect(endpointGaps[2]).toBeGreaterThan(endpointGaps[1]);
+  });
+
+  it("models trailing debounce as one call per continuous burst", () => {
+    const spec = playground("debouncing");
+    for (const scenario of spec.scenarios)
+      for (const point of scenario.chartData) {
+        expect(point.values.baseline).toBe(Number(point.x));
+        expect(point.values.optimized).toBe(1);
+      }
+  });
+
+  it("keeps the valid cache hit-rate model at ten percent origin load", () => {
+    const spec = playground("cache-hit-rate");
+    for (const scenario of spec.scenarios)
+      for (const point of scenario.chartData)
+        expect(point.values.optimized).toBe(point.values.baseline * 0.1);
   });
 });

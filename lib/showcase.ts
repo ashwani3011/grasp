@@ -358,147 +358,261 @@ const caching: StepperSpec = {
   ],
 };
 
-function makePlayground(input: {
-  title: string;
-  concept: string;
-  summary: string;
-  takeaway: string;
-  controlLabel: string;
-  unit: string;
-  values: number[];
-  series: [string, string];
-  multiplier: [number, number];
-  explanations: string[];
-}): PlaygroundSpec {
-  return {
-    version: 1,
-    archetype: "playground",
-    title: input.title,
-    concept: input.concept,
-    level: "student",
-    summary: input.summary,
-    whyThisArchetype:
-      "Changing one input and seeing the curve respond makes the trade-off easier to feel than a static definition.",
-    keyTakeaway: input.takeaway,
-    controls: [
-      {
-        id: "size",
-        kind: "slider",
-        label: input.controlLabel,
-        min: 0,
-        max: input.values.length - 1,
-        step: 1,
-        defaultValue: 1,
-      },
-    ],
-    series: [
-      { id: "baseline", label: input.series[0], color: "rose" },
-      { id: "optimized", label: input.series[1], color: "violet" },
-    ],
-    xAxisLabel: "Input scale",
-    yAxisLabel: input.unit,
-    scenarios: input.values.map((value, index) => ({
-      id: `case-${index}`,
+function sampleInputs(max: number) {
+  return [
+    ...new Set(
+      [1, 0.25, 0.5, 0.75, 1].map((part) =>
+        Math.max(1, Math.round(max * part)),
+      ),
+    ),
+  ].sort((left, right) => left - right);
+}
+
+const tableSizes = [1_000, 10_000, 100_000];
+const indexing: PlaygroundSpec = {
+  version: 1,
+  archetype: "playground",
+  title: "Database indexing",
+  concept: "Database indexes",
+  level: "student",
+  summary:
+    "Change table size and compare a full scan with a logarithmic index lookup.",
+  whyThisArchetype:
+    "Changing table size makes the widening gap between linear scanning and logarithmic lookup visible.",
+  keyTakeaway:
+    "Indexes trade write cost and storage for dramatically less read work on selective queries.",
+  controls: [
+    {
+      id: "size",
+      kind: "slider",
+      label: "Table size",
+      min: 0,
+      max: tableSizes.length - 1,
+      step: 1,
+      defaultValue: 1,
+    },
+  ],
+  series: [
+    { id: "baseline", label: "Full scan — O(n)", color: "rose" },
+    { id: "optimized", label: "B-tree lookup — O(log n)", color: "violet" },
+  ],
+  xAxisLabel: "Rows in table",
+  yAxisLabel: "Relative lookup work",
+  scenarios: tableSizes.map((tableSize, index) => {
+    const logarithmicWork = Math.ceil(Math.log2(tableSize));
+    return {
+      id: `table-${tableSize}`,
       when: { size: index },
-      explanation: input.explanations[index],
+      explanation: [
+        "Even at 1,000 rows, a selective index lookup grows far more slowly than a scan. Real B-trees use a high branching factor, so their height is often smaller than this log₂ illustration.",
+        "At 10,000 rows, scan work is ten times larger than at 1,000 while logarithmic lookup work increases only modestly.",
+        "At 100,000 rows, the growth-rate gap is dramatic, though selectivity and access pattern still determine whether an index is useful.",
+      ][index],
       metrics: [
         {
           id: "input",
-          label: input.controlLabel,
-          value: value.toLocaleString(),
-          tone: "neutral",
+          label: "Table size",
+          value: tableSize.toLocaleString(),
+          tone: "neutral" as const,
         },
         {
           id: "difference",
-          label: "Relative gap",
-          value: `${Math.max(1, Math.round(input.multiplier[0] / input.multiplier[1]))}×`,
-          note: `${input.series[1]} at this scale`,
-          tone: "good",
+          label: "Scan / index work",
+          value: `${Math.round(tableSize / logarithmicWork).toLocaleString()}×`,
+          note: "Theoretical n ÷ ⌈log₂ n⌉",
+          tone: "good" as const,
         },
       ],
-      chartData: [1, 2, 3, 4, 5].map((scale) => ({
-        x: `${scale}×`,
+      chartData: sampleInputs(tableSize).map((rows) => ({
+        x: String(rows),
         values: {
-          baseline: Number((value * scale * input.multiplier[0]).toFixed(2)),
-          optimized: Number((value * scale * input.multiplier[1]).toFixed(2)),
+          baseline: rows,
+          optimized: Math.ceil(Math.log2(rows)),
         },
       })),
-    })),
-  };
-}
+    };
+  }),
+};
 
-const indexing = makePlayground({
-  title: "Database indexing",
-  concept: "Database indexes",
-  summary:
-    "Change table size and compare a full scan with a logarithmic index lookup.",
-  takeaway:
-    "Indexes trade write cost and storage for dramatically less read work on selective queries.",
-  controlLabel: "Table size",
-  unit: "Rows examined",
-  values: [1000, 10000, 100000],
-  series: ["Full scan", "B-tree lookup"],
-  multiplier: [1, 0.05],
-  explanations: [
-    "At small sizes both feel quick, though the scan already touches much more data.",
-    "As the table grows, the index narrows the search while the scan grows linearly.",
-    "At production scale, selectivity and access pattern determine whether the index pays off.",
-  ],
-});
-const bigO = makePlayground({
+const inputSizes = [10, 50, 100];
+const bigO: PlaygroundSpec = {
+  version: 1,
+  archetype: "playground",
   title: "Big-O growth",
   concept: "Big-O time complexity",
+  level: "student",
   summary:
     "Increase input size and compare linear work with a quadratic algorithm.",
-  takeaway:
+  whyThisArchetype:
+    "Adjusting n reveals how a quadratic curve bends away from linear growth.",
+  keyTakeaway:
     "Big-O describes how work grows; constants matter locally, but growth dominates at scale.",
-  controlLabel: "Input n",
-  unit: "Relative operations",
-  values: [10, 50, 100],
-  series: ["O(n²)", "O(n)"],
-  multiplier: [1, 0.1],
-  explanations: [
-    "For tiny inputs, either implementation can be acceptable.",
-    "Growth starts to dominate constant-factor differences.",
-    "Doubling n roughly quadruples quadratic work but only doubles linear work.",
+  controls: [
+    {
+      id: "size",
+      kind: "slider",
+      label: "Input n",
+      min: 0,
+      max: inputSizes.length - 1,
+      step: 1,
+      defaultValue: 1,
+    },
   ],
-});
-const cacheRates = makePlayground({
+  series: [
+    { id: "baseline", label: "O(n²)", color: "rose" },
+    { id: "optimized", label: "O(n)", color: "violet" },
+  ],
+  xAxisLabel: "Input n",
+  yAxisLabel: "Relative operations",
+  scenarios: inputSizes.map((maxInput, index) => ({
+    id: `input-${maxInput}`,
+    when: { size: index },
+    explanation: [
+      "For tiny inputs, both algorithms may be fast, but the quadratic curve is already bending upward.",
+      "At n = 50, quadratic work is 50 times the linear work in this growth-rate comparison.",
+      "Doubling n from 50 to 100 doubles linear work but quadruples quadratic work.",
+    ][index],
+    metrics: [
+      {
+        id: "input",
+        label: "Input n",
+        value: String(maxInput),
+        tone: "neutral" as const,
+      },
+      {
+        id: "difference",
+        label: "n² / n gap",
+        value: `${maxInput}×`,
+        note: "At the selected n",
+        tone: "good" as const,
+      },
+    ],
+    chartData: sampleInputs(maxInput).map((input) => ({
+      x: String(input),
+      values: { baseline: input ** 2, optimized: input },
+    })),
+  })),
+};
+
+const requestRates = [100, 1_000, 10_000];
+const cacheRates: PlaygroundSpec = {
+  version: 1,
+  archetype: "playground",
   title: "Cache hit-rate economics",
   concept: "Cache hit rate",
+  level: "student",
   summary:
     "Change request volume and see why even a small miss rate can keep the origin busy.",
-  takeaway:
+  whyThisArchetype:
+    "Adjusting traffic makes the origin work avoided by a fixed cache hit rate tangible.",
+  keyTakeaway:
     "At high traffic, improving hit rate by a few points can remove a large amount of origin load.",
-  controlLabel: "Requests / sec",
-  unit: "Backend work",
-  values: [100, 1000, 10000],
-  series: ["No cache", "90% hit rate"],
-  multiplier: [1, 0.1],
-  explanations: [
-    "The origin can easily absorb this load, but the cache still reduces latency.",
-    "A 90% hit rate removes nine out of ten origin reads.",
-    "At high volume, the remaining 10% miss stream is still substantial and must be capacity-planned.",
+  controls: [
+    {
+      id: "size",
+      kind: "slider",
+      label: "Requests / sec",
+      min: 0,
+      max: requestRates.length - 1,
+      step: 1,
+      defaultValue: 1,
+    },
   ],
-});
-const debounce = makePlayground({
+  series: [
+    { id: "baseline", label: "No cache", color: "rose" },
+    { id: "optimized", label: "90% hit rate", color: "violet" },
+  ],
+  xAxisLabel: "Requests / second",
+  yAxisLabel: "Origin requests / second",
+  scenarios: requestRates.map((requests, index) => ({
+    id: `requests-${requests}`,
+    when: { size: index },
+    explanation: [
+      "At 100 requests per second, a 90% hit rate leaves 10 origin requests per second.",
+      "A 90% hit rate removes nine out of ten origin reads, leaving 100 requests per second at the origin.",
+      "At high volume, the remaining 10% miss stream is still substantial and must be capacity-planned.",
+    ][index],
+    metrics: [
+      {
+        id: "input",
+        label: "Requests / sec",
+        value: requests.toLocaleString(),
+        tone: "neutral" as const,
+      },
+      {
+        id: "difference",
+        label: "Origin work avoided",
+        value: "90%",
+        note: `${(requests * 0.1).toLocaleString()} requests/sec still miss`,
+        tone: "good" as const,
+      },
+    ],
+    chartData: sampleInputs(requests).map((rate) => ({
+      x: String(rate),
+      values: { baseline: rate, optimized: rate * 0.1 },
+    })),
+  })),
+};
+
+const burstSizes = [5, 20, 100];
+const debounce: PlaygroundSpec = {
+  version: 1,
+  archetype: "playground",
   title: "Debounce noisy input",
   concept: "Debouncing",
+  level: "student",
   summary:
     "Increase the event burst and compare one request per keystroke with a debounced handler.",
-  takeaway:
+  whyThisArchetype:
+    "Changing burst size shows how trailing-edge debounce collapses a continuous burst into one call.",
+  keyTakeaway:
     "Debouncing waits for quiet before acting, trading a small delay for far fewer repeated calls.",
-  controlLabel: "Events in burst",
-  unit: "Handler calls",
-  values: [5, 20, 100],
-  series: ["Immediate", "Debounced"],
-  multiplier: [1, 0.08],
-  explanations: [
-    "A short burst creates a little duplicate work.",
-    "Debouncing collapses a typical typing burst into roughly one useful action.",
-    "For noisy sources, the reduction protects both the browser and downstream services.",
+  controls: [
+    {
+      id: "size",
+      kind: "slider",
+      label: "Events in burst",
+      min: 0,
+      max: burstSizes.length - 1,
+      step: 1,
+      defaultValue: 1,
+    },
   ],
-});
+  series: [
+    { id: "baseline", label: "Immediate", color: "rose" },
+    { id: "optimized", label: "Trailing debounce", color: "violet" },
+  ],
+  xAxisLabel: "Events in one continuous burst",
+  yAxisLabel: "Handler calls",
+  scenarios: burstSizes.map((events, index) => ({
+    id: `burst-${events}`,
+    when: { size: index },
+    explanation: [
+      "If all five events arrive before the debounce delay expires, an immediate handler runs five times while trailing debounce runs once after the burst.",
+      "For one continuous 20-event burst, trailing debounce resets its timer on every event and runs once after input becomes quiet.",
+      "For one continuous 100-event burst, trailing debounce still runs once; separate bursts or pauses longer than the delay would create additional calls.",
+    ][index],
+    metrics: [
+      {
+        id: "input",
+        label: "Events in burst",
+        value: String(events),
+        tone: "neutral" as const,
+      },
+      {
+        id: "difference",
+        label: "Call reduction",
+        value: `${events}×`,
+        note: "Assumes one burst within the delay window",
+        tone: "good" as const,
+      },
+    ],
+    chartData: sampleInputs(events).map((burstEvents) => ({
+      x: String(burstEvents),
+      values: { baseline: burstEvents, optimized: 1 },
+    })),
+  })),
+};
 
 const rawSpecs: ExplainerSpec[] = [
   eventLoop,

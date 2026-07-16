@@ -169,3 +169,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The Stepper chip label is immutable across steps, so the closure uses one stable `count binding` chip while narration describes its value changing from 0 to 1. This accurately visualizes binding identity without implying a copied value.
 - **Direction changes:** Replaced the generic compact encoding with deliberate hand-authored states, as requested.
 - **Commit:** `fix: correct showcase process states`
+
+## 2026-07-16 — Correct showcase playground math
+
+- **Asked:** Replace fake constant-multiplier charts in the showcase with mathematically faithful, concept-specific curves.
+- **Implemented:** Removed the generic Playground factory; modeled Big-O as n² versus n, indexing as n versus ⌈log₂ n⌉ with a scale-dependent gap, trailing debounce as one call per continuous burst, and the 90% cache hit rate as 10% origin load. Added regression tests for every mathematical invariant.
+- **Challenges / uncertainty:** A production B-tree has a high branching factor and usually less work than log₂ n; the chart is explicitly labeled as relative theoretical work and the explanation states that simplification. Debounce explicitly assumes events remain inside one delay window.
+- **Direction changes:** Retained the cache hit-rate relationship because validation confirmed it was already mathematically correct, but rewrote it as an explicit concept-owned spec.
+- **Commit:** `fix: correct showcase playground math`
