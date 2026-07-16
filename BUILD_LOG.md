@@ -105,3 +105,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Interview data is intentionally ephemeral because accounts and persistence are out of scope.
 - **Direction changes:** None.
 - **Commit:** `feat: add concept interview mode`
+
+## 2026-07-16 — Continuous integration
+
+- **Asked:** Keep CI checks as a separate logical commit and enforce formatting, linting, type checking, tests, and production builds.
+- **Implemented:** Added a GitHub Actions workflow using Node 22 and lockfile caching that runs all five quality gates on pushes to main and pull requests.
+- **Challenges / uncertainty:** The build receives a nonfunctional placeholder API key only to prove that build-time code never requires a real secret.
+- **Direction changes:** None.
+- **Commit:** `ci: enforce repository quality gates`
