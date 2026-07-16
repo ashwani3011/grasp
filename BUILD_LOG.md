@@ -193,3 +193,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Serverless instances do not share memory and may recycle at any time, so this is intentionally documented as best-effort protection rather than a distributed quota.
 - **Direction changes:** Kept the implementation in-memory as requested; no database or external rate-limit service was introduced.
 - **Commit:** `feat: add bounded AI request limiters`
+
+## 2026-07-17 — Protect public AI routes
+
+- **Asked:** Enforce the launch safeguards on live generation and Interview mode, with graceful behavior under load.
+- **Implemented:** Added a shared per-IP admission guard with a six-request burst, one-token-per-20-second refill, and four-request per-instance concurrency ceiling; applied it before body parsing on both AI routes; returned friendly `429` or `503` JSON with `Retry-After`; exposed remaining quota headers; and guaranteed lease release with `finally` blocks.
+- **Challenges / uncertainty:** IP-based limiting can group users behind a shared NAT, so the burst permits a complete generation-plus-interview flow and a level rerun before throttling sustained traffic.
+- **Direction changes:** Protected `/api/interview` as well as `/api/generate` because question generation and grading both spend model capacity.
+- **Commit:** `feat: protect public AI routes`
