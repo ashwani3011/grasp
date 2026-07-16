@@ -33,3 +33,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** npm reported a moderate transitive vulnerability through Next.js; its automatic suggestion was an unsafe framework downgrade, so a narrow patched-version override was used instead.
 - **Direction changes:** None.
 - **Commit:** `fix(deps): pin patched postcss version`
+
+## 2026-07-16 — Foundation formatting pass
+
+- **Asked:** Keep formatting changes isolated from product behavior.
+- **Implemented:** Applied the repository formatter to the existing tracked configuration, UI helpers, schemas, and showcase fixtures without changing runtime behavior.
+- **Challenges / uncertainty:** The initial repository commit predated the formatting setup, so these existing files needed a one-time mechanical pass.
+- **Direction changes:** None.
+- **Commit:** `style: format existing foundation files`
