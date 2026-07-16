@@ -57,3 +57,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Remote Google font fetching broke offline production builds, so the fonts are packaged locally.
 - **Direction changes:** None.
 - **Commit:** `feat: add application design foundation`
+
+## 2026-07-16 — Explainer render primitives
+
+- **Asked:** Make the hardcoded Stepper and Playground visible before wiring AI, with stable chip IDs and Framer Motion `layoutId` movement as the key visual.
+- **Implemented:** Added the shared explainer frame, visible archetype rationale badge, animated Stepper navigation, scenario-only Playground controls and Recharts visualization, responsive layouts, and a focused Stepper interaction test.
+- **Challenges / uncertainty:** Playground interactivity is intentionally data-driven; model-authored code and formulas are never executed.
+- **Direction changes:** Flow remains excluded until both required archetypes are polished.
+- **Commit:** `feat: add hardened explainer renderers`
