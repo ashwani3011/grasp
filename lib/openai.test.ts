@@ -29,6 +29,7 @@ describe("validatedModelCall", () => {
       validatedModelCall({ schema, initialPrompt: "teach", request }),
     ).resolves.toEqual({ answer: "repaired" });
     expect(request).toHaveBeenCalledTimes(2);
+    expect(request.mock.calls[1][0]).toContain("ORIGINAL REQUEST:\nteach");
     expect(request.mock.calls[1][0]).toContain("VALIDATION ERRORS");
     expect(request.mock.calls[1][0]).toContain("answer");
   });
@@ -39,5 +40,44 @@ describe("validatedModelCall", () => {
       validatedModelCall({ schema, initialPrompt: "teach", request }),
     ).rejects.toMatchObject({ code: "invalid_output" });
     expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("repairs malformed JSON instead of failing before the retry", async () => {
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce("not-json")
+      .mockResolvedValueOnce('{"answer":"repaired"}');
+
+    await expect(
+      validatedModelCall({ schema, initialPrompt: "teach", request }),
+    ).resolves.toEqual({ answer: "repaired" });
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(request.mock.calls[1][0]).toContain("INVALID RESPONSE:\nnot-json");
+  });
+
+  it("caps validation feedback at sixteen issues", async () => {
+    const fields = Array.from(
+      { length: 20 },
+      (_, index) => [`field_${index}`, z.string()] as const,
+    );
+    const wideSchema = z.object(Object.fromEntries(fields)).strict();
+    const repaired = Object.fromEntries(
+      fields.map(([field]) => [field, "valid"]),
+    );
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce("{}")
+      .mockResolvedValueOnce(JSON.stringify(repaired));
+
+    await expect(
+      validatedModelCall({
+        schema: wideSchema,
+        initialPrompt: "wide",
+        request,
+      }),
+    ).resolves.toEqual(repaired);
+    const repairPrompt = request.mock.calls[1][0];
+    expect(repairPrompt).toContain("field_15");
+    expect(repairPrompt).not.toContain("field_16");
   });
 });

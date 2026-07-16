@@ -43,27 +43,40 @@ export class GenerationError extends Error {
   }
 }
 
-function validationMessage(error: z.ZodError) {
-  return error.issues
+type ModelValidationIssue = {
+  path: PropertyKey[];
+  message: string;
+};
+
+function validationMessage(issues: ModelValidationIssue[]) {
+  return issues
     .slice(0, 16)
-    .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+    .map(
+      (issue) =>
+        `${issue.path.map(String).join(".") || "root"}: ${issue.message}`,
+    )
     .join("\n");
 }
 
-function parseJson<T>(schema: z.ZodType<T>, raw: string) {
+function parseJson<T>(
+  schema: z.ZodType<T>,
+  raw: string,
+):
+  | { success: true; data: T }
+  | { success: false; issues: ModelValidationIssue[] } {
   try {
-    return schema.safeParse(JSON.parse(raw));
+    const parsed = schema.safeParse(JSON.parse(raw));
+    if (parsed.success) return parsed;
+    return { success: false, issues: parsed.error.issues };
   } catch (cause) {
     return {
       success: false as const,
-      error: {
-        issues: [
-          {
-            path: [],
-            message: cause instanceof Error ? cause.message : "Invalid JSON",
-          },
-        ],
-      },
+      issues: [
+        {
+          path: [],
+          message: cause instanceof Error ? cause.message : "Invalid JSON",
+        },
+      ],
     };
   }
 }
@@ -85,15 +98,13 @@ export async function validatedModelCall<T>({
   const first = parseJson(schema, firstRaw);
   if (first.success) return first.data;
 
-  const issues =
-    "issues" in first.error
-      ? first.error.issues
-          .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
-          .join("\n")
-      : validationMessage(first.error);
+  const issues = validationMessage(first.issues);
   const repairPrompt = [
     "Your previous JSON response failed validation.",
     "Return a corrected JSON object only. Preserve the teaching intent; change the minimum needed to satisfy every error.",
+    "",
+    "ORIGINAL REQUEST:",
+    initialPrompt.slice(0, 12_000),
     "",
     "VALIDATION ERRORS:",
     issues,
@@ -108,7 +119,7 @@ export async function validatedModelCall<T>({
   throw new GenerationError(
     "invalid_output",
     "The explainer could not be validated after one repair attempt.",
-    repaired.error,
+    repaired.issues,
   );
 }
 

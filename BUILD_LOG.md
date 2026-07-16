@@ -137,3 +137,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Checkpoints remain in the separate Interview flow to avoid duplicating or invalidating the strict explainer spec.
 - **Direction changes:** The existing repair prompt was retained because it already includes the requested validation issues plus the invalid response and a minimal-change instruction.
 - **Commit:** `feat: align generation prompt with explainer schema`
+
+## 2026-07-16 — Self-repair context hardening
+
+- **Asked:** Complete the remaining improvements identified while validating the one-generation, one-repair architecture.
+- **Implemented:** Preserved the original concept and level prompt in repair requests, normalized malformed JSON and Zod failures into one bounded issue format, capped repair feedback at 16 issues, and added regression tests for context retention, malformed JSON repair, feedback bounds, and the two-call ceiling.
+- **Challenges / uncertainty:** SDK transport retries remain enabled independently of the single semantic repair because they improve resilience to transient network failures.
+- **Direction changes:** None.
+- **Commit:** `fix: preserve context in bounded self-repair`
