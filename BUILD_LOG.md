@@ -9,3 +9,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The earlier milestone commit mixed unrelated changes. It was undone while preserving the working tree so the history could be rebuilt cleanly.
 - **Direction changes:** The owner explicitly requested one logical change per commit.
 - **Commit:** `chore: configure automated formatting`
+
+## 2026-07-16 — Lint cleanup
+
+- **Asked:** Keep linting as its own logical change.
+- **Implemented:** Removed the anonymous default export warning from the PostCSS configuration so ESLint completes with zero warnings.
+- **Challenges / uncertainty:** ESLint was already present in the initial repository commit; this commit isolates the remaining configuration warning rather than rewriting older history.
+- **Direction changes:** None beyond the newly requested granular commit policy.
+- **Commit:** `fix: eliminate lint configuration warning`
