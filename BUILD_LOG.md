@@ -17,3 +17,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** ESLint was already present in the initial repository commit; this commit isolates the remaining configuration warning rather than rewriting older history.
 - **Direction changes:** None beyond the newly requested granular commit policy.
 - **Commit:** `fix: eliminate lint configuration warning`
+
+## 2026-07-16 — Testing harness
+
+- **Asked:** Keep testing setup independent from product features.
+- **Implemented:** Added Vitest, jsdom, React Testing Library, DOM matchers, user-event support, path aliases, and test/watch scripts.
+- **Challenges / uncertainty:** Product tests remain with the features they verify; this commit contains only the reusable harness.
+- **Direction changes:** None.
+- **Commit:** `test: configure component testing harness`
