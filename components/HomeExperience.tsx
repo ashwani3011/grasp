@@ -14,6 +14,7 @@ import { showcaseBySlug, showcaseSpecs } from "@/lib/showcase";
 import { Explainer } from "@/components/Explainer";
 import { ErrorCard } from "@/components/ErrorCard";
 import { ExplainerSkeleton } from "@/components/ExplainerSkeleton";
+import { ShareButton } from "@/components/ShareButton";
 import { Button } from "@/components/ui/button";
 
 const levels: { value: Level; label: string }[] = [
@@ -211,7 +212,7 @@ export function HomeExperience() {
             />
           ) : (
             <>
-              <Explainer spec={spec} />
+              <Explainer spec={spec} actions={<ShareButton spec={spec} />} />
             </>
           )}
         </div>

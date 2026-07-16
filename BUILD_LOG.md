@@ -81,3 +81,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** None.
 - **Direction changes:** None.
 - **Commit:** `test: cover explainer schema invariants`
+
+## 2026-07-16 — Offline sharing and gallery
+
+- **Asked:** Make explainers shareable by URL alone, render shared links with the API offline, and provide a grid of eight verified cached examples.
+- **Implemented:** Added validated base64url encoding/decoding, share-copy UI, defensive invalid-link rendering, the dynamic shared route, route loading state, and the eight-card verified gallery.
+- **Challenges / uncertainty:** Shared payload size is bounded before parsing to avoid excessive untrusted input.
+- **Direction changes:** None.
+- **Commit:** `feat: add offline sharing and gallery`
