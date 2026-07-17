@@ -56,6 +56,62 @@ describe("explainer schemas", () => {
     expect(generatedExplainerSchema.parse({ spec: wireSpec })).toEqual(source);
   });
 
+  it("keeps the first live chip placement when columns contain a duplicate", () => {
+    const source = showcaseSpecs.find((spec) => spec.archetype === "stepper");
+    if (!source || source.archetype !== "stepper")
+      throw new Error("Expected a stepper showcase");
+
+    const wireSpec = structuredClone(source);
+    const firstPlacement = wireSpec.steps[0].columns.find(
+      (column) => column.chipIds.length > 0,
+    );
+    const laterColumn = wireSpec.steps[0].columns.find(
+      (column) => column !== firstPlacement,
+    );
+    if (!firstPlacement || !laterColumn)
+      throw new Error("Expected two populated step columns");
+    const duplicateId = firstPlacement.chipIds[0];
+    laterColumn.chipIds.push(duplicateId);
+
+    const parsed = generatedExplainerSchema.parse({ spec: wireSpec });
+    expect(parsed.archetype).toBe("stepper");
+    if (parsed.archetype !== "stepper") return;
+    const parsedFirstPlacement = parsed.steps[0].columns.find(
+      (column) => column.columnId === firstPlacement.columnId,
+    );
+    const parsedLaterColumn = parsed.steps[0].columns.find(
+      (column) => column.columnId === laterColumn.columnId,
+    );
+    expect(parsedFirstPlacement?.chipIds).toContain(duplicateId);
+    expect(parsedLaterColumn?.chipIds).not.toContain(duplicateId);
+    expect(explainerSpecSchema.safeParse(parsed).success).toBe(true);
+  });
+
+  it("dedupes repeated live chip ids within one column", () => {
+    const source = showcaseSpecs.find((spec) => spec.archetype === "stepper");
+    if (!source || source.archetype !== "stepper")
+      throw new Error("Expected a stepper showcase");
+
+    const wireSpec = structuredClone(source);
+    const column = wireSpec.steps[0].columns.find(
+      (candidate) => candidate.chipIds.length > 0,
+    );
+    if (!column) throw new Error("Expected a populated step column");
+    const duplicateId = column.chipIds[0];
+    column.chipIds.push(duplicateId);
+
+    const parsed = generatedExplainerSchema.parse({ spec: wireSpec });
+    expect(parsed.archetype).toBe("stepper");
+    if (parsed.archetype !== "stepper") return;
+    const parsedColumn = parsed.steps[0].columns.find(
+      (candidate) => candidate.columnId === column.columnId,
+    );
+    expect(
+      parsedColumn?.chipIds.filter((chipId) => chipId === duplicateId),
+    ).toHaveLength(1);
+    expect(explainerSpecSchema.safeParse(parsed).success).toBe(true);
+  });
+
   it("accepts every hand-verified showcase spec", () => {
     expect(showcaseSpecs).toHaveLength(8);
     for (const spec of showcaseSpecs)

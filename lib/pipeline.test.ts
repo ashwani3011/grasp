@@ -7,12 +7,14 @@ describe("generation pipeline metadata", () => {
       [generationHeaders.model]: "gpt-test",
       [generationHeaders.generateMs]: "1234.4",
       [generationHeaders.repairUsed]: "true",
+      [generationHeaders.movementDegraded]: "false",
       [generationHeaders.validation]: "zod",
     });
     expect(readGenerationMeta(headers)).toEqual({
       model: "gpt-test",
       generateMs: 1234,
       repairUsed: true,
+      movementDegraded: false,
       validation: "zod",
     });
   });
@@ -25,6 +27,7 @@ describe("generation pipeline metadata", () => {
           [generationHeaders.model]: "gpt-test",
           [generationHeaders.generateMs]: "not-a-duration",
           [generationHeaders.repairUsed]: "false",
+          [generationHeaders.movementDegraded]: "false",
           [generationHeaders.validation]: "zod",
         }),
       ),

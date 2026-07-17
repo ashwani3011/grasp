@@ -7,6 +7,7 @@ import {
   askAnswerSchema,
   askTargetSchema,
   explainerSpecSchema,
+  generatedExplainerSchema,
   generatedExplainerWireSchema,
   interviewAssessmentSchema,
   interviewSetSchema,
@@ -104,16 +105,19 @@ export async function validatedModelCall<T>({
 
 export async function validatedModelCallWithMeta<T>({
   schema,
+  lenientSchema,
   initialPrompt,
   request,
 }: {
   schema: z.ZodType<T>;
+  lenientSchema?: z.ZodType<T>;
   initialPrompt: string;
   request: (prompt: string) => Promise<string>;
-}): Promise<{ data: T; repairUsed: boolean }> {
+}): Promise<{ data: T; repairUsed: boolean; lenientUsed: boolean }> {
   const firstRaw = await request(initialPrompt);
   const first = parseJson(schema, firstRaw);
-  if (first.success) return { data: first.data, repairUsed: false };
+  if (first.success)
+    return { data: first.data, repairUsed: false, lenientUsed: false };
 
   const issues = validationMessage(first.issues);
   const repairPrompt = [
@@ -132,7 +136,13 @@ export async function validatedModelCallWithMeta<T>({
 
   const repairedRaw = await request(repairPrompt);
   const repaired = parseJson(schema, repairedRaw);
-  if (repaired.success) return { data: repaired.data, repairUsed: true };
+  if (repaired.success)
+    return { data: repaired.data, repairUsed: true, lenientUsed: false };
+  if (lenientSchema) {
+    const lenient = parseJson(lenientSchema, repairedRaw);
+    if (lenient.success)
+      return { data: lenient.data, repairUsed: true, lenientUsed: true };
+  }
   throw new GenerationError(
     "invalid_output",
     "The explainer could not be validated after one repair attempt.",
@@ -175,7 +185,7 @@ If the input names a family or asks for “types of X,” cover the family and i
 
 Choose exactly one archetype:
 - stepper: use for ordered state changes, movement, protocols, lifecycles, queues, and scope formation. Declare columns and chips once at the top level. Each step references every column by columnId and places chips by chipId. A chip id is a stable object identity: reuse it when the same thing moves between columns. A chip appears at most once per step.
-- playground: use for quantitative variables and trade-offs the learner should feel by adjusting them. Define 1-3 controls, named chart series, and explicit precomputed scenarios. The complete control state space must contain at most 24 combinations, and exactly one scenario must exist for every combination. Each scenario.when is an array containing one {controlId, value} entry for every control. Each chart point values field is an array containing one {seriesId, value} entry for every declared series. Never provide formulas or executable code.
+- playground: use for quantitative variables and trade-offs the learner should feel by adjusting them. Define named chart series and explicit precomputed scenarios. Prefer one control; use two only when essential, and never use three. Keep the complete control state space at or below 12 scenarios, and provide exactly one scenario for every combination. Each scenario.when is an array containing one {controlId, value} entry for every control. Each chart point values field is an array containing one {seriesId, value} entry for every declared series. Never provide formulas or executable code.
 
 Archetype decision rule: choose playground for growth-rate comparisons such as Big-O, indexing cost, cache hit rate, debounce behavior, or any concept where changing an input should visibly change a chart. Choose stepper only when a concrete thing changes state or location over time.
 
@@ -196,7 +206,7 @@ Stepper design rules:
 
 Learning frame:
 - hook is one concrete sentence naming why this matters at the requested level. Name the symptom or developer pain, never use marketing language.
-- example is included only when a short snippet genuinely proves the core idea. code is plain text with no markdown fences, no more than about 12 lines, and no comments narrating the obvious. output must be exactly what the snippet prints or produces. Exactness is the highest priority: when unsure, return null instead.
+- example is included only when its code is literally executable with a deterministic printed result and genuinely proves the core idea. code is plain text with no markdown fences, no more than about 12 lines, no comments narrating the obvious, and must print its result itself with the relevant console.log, print, or equivalent call. output must be exactly what the code prints. If the honest example would describe a result rather than execute and print it, or exactness is uncertain, return null instead.
 - commonQuestions contains exactly three short, natural follow-up questions a learner at this level would ask after the walkthrough. They clarify the mechanism or its practical consequences; never use trivia.
 
 Match the requested level:
@@ -226,6 +236,7 @@ export async function generateExplainerWithMeta(
   const prompt = `Create an explorable explanation for this input:\n\n${concept}\n\nAudience level: ${level}.`;
   const generated = await validatedModelCallWithMeta({
     schema: liveGeneratedExplainerSchema,
+    lenientSchema: generatedExplainerSchema,
     initialPrompt: prompt,
     request: (input) =>
       structuredRequest(
@@ -241,6 +252,7 @@ export async function generateExplainerWithMeta(
       model: MODEL,
       generateMs: Math.round(performance.now() - startedAt),
       repairUsed: generated.repairUsed,
+      movementDegraded: generated.lenientUsed,
       validation: "zod",
     },
   };

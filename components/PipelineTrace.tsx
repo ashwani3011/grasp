@@ -15,9 +15,13 @@ function durationLabel(milliseconds: number) {
     : `${(milliseconds / 1_000).toFixed(1)}s`;
 }
 
-function validationChecks(spec: ExplainerSpec) {
+function validationChecks(spec: ExplainerSpec, movementDegraded: boolean) {
   return spec.archetype === "stepper"
-    ? ["strict schema + bounds", "reference integrity", "stable chip movement"]
+    ? [
+        "strict schema + bounds",
+        "reference integrity",
+        ...(!movementDegraded ? ["stable chip movement"] : []),
+      ]
     : [
         "strict schema + bounds",
         "reference integrity",
@@ -74,7 +78,8 @@ export function PipelineTrace({
             Inspector
           </div>
           <p className="mt-1 text-xs leading-5 text-emerald-800">
-            Zod passed: {validationChecks(spec).join(" · ")}.
+            Zod passed:{" "}
+            {validationChecks(spec, meta.movementDegraded).join(" · ")}.
           </p>
         </div>
 

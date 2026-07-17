@@ -2,6 +2,7 @@ export const generationHeaders = {
   model: "x-grasp-model",
   generateMs: "x-grasp-generate-ms",
   repairUsed: "x-grasp-repair-used",
+  movementDegraded: "x-grasp-movement-degraded",
   validation: "x-grasp-validation",
 } as const;
 
@@ -9,6 +10,7 @@ export type GenerationMeta = {
   model: string;
   generateMs: number;
   repairUsed: boolean;
+  movementDegraded: boolean;
   validation: "zod";
 };
 
@@ -16,12 +18,14 @@ export function readGenerationMeta(headers: Headers): GenerationMeta | null {
   const model = headers.get(generationHeaders.model)?.trim();
   const generateMs = Number(headers.get(generationHeaders.generateMs));
   const repairUsed = headers.get(generationHeaders.repairUsed);
+  const movementDegraded = headers.get(generationHeaders.movementDegraded);
   const validation = headers.get(generationHeaders.validation);
   if (
     !model ||
     !Number.isFinite(generateMs) ||
     generateMs < 0 ||
     (repairUsed !== "true" && repairUsed !== "false") ||
+    (movementDegraded !== "true" && movementDegraded !== "false") ||
     validation !== "zod"
   )
     return null;
@@ -29,6 +33,7 @@ export function readGenerationMeta(headers: Headers): GenerationMeta | null {
     model,
     generateMs: Math.round(generateMs),
     repairUsed: repairUsed === "true",
+    movementDegraded: movementDegraded === "true",
     validation,
   };
 }

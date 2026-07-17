@@ -24,6 +24,7 @@ describe("HomeExperience live pipeline", () => {
             [generationHeaders.model]: "gpt-test",
             [generationHeaders.generateMs]: "950",
             [generationHeaders.repairUsed]: "false",
+            [generationHeaders.movementDegraded]: "false",
             [generationHeaders.validation]: "zod",
           },
         }),

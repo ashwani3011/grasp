@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { PipelineTrace } from "@/components/PipelineTrace";
 import { showcaseBySlug } from "@/lib/showcase";
 
@@ -7,8 +7,11 @@ const baseMeta = {
   model: "gpt-test",
   generateMs: 1_234,
   repairUsed: false,
+  movementDegraded: false,
   validation: "zod" as const,
 };
+
+afterEach(cleanup);
 
 describe("PipelineTrace", () => {
   it("renders only stages that actually happened", () => {
@@ -41,5 +44,18 @@ describe("PipelineTrace", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Shape: playground")).toBeInTheDocument();
     expect(screen.getByText(/complete scenario coverage/)).toBeInTheDocument();
+  });
+
+  it("does not claim stable movement when movement validation degraded", () => {
+    render(
+      <PipelineTrace
+        spec={showcaseBySlug["event-loop"]}
+        meta={{ ...baseMeta, repairUsed: true, movementDegraded: true }}
+      />,
+    );
+
+    expect(screen.getByText("Inspector")).toBeInTheDocument();
+    expect(screen.getByText(/reference integrity/)).toBeInTheDocument();
+    expect(screen.queryByText(/stable chip movement/)).not.toBeInTheDocument();
   });
 });

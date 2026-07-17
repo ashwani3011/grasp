@@ -1,5 +1,10 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import {
+  generatedExplainerSchema,
+  liveGeneratedExplainerSchema,
+} from "@/lib/schema";
+import { showcaseBySlug } from "@/lib/showcase";
 
 vi.mock("server-only", () => ({}));
 
@@ -20,6 +25,24 @@ describe("explainer prompt", () => {
     expect(explainerSystem).toContain("the members are chips, never columns");
     expect(explainerSystem).toContain(
       "means compare var, let, and const unless the input explicitly asks about data or value types",
+    );
+  });
+
+  it("requires executable exact examples and compact playgrounds", () => {
+    expect(explainerSystem).toContain(
+      "code is literally executable with a deterministic printed result",
+    );
+    expect(explainerSystem).toContain(
+      "must print its result itself with the relevant console.log, print, or equivalent call",
+    );
+    expect(explainerSystem).toContain(
+      "If the honest example would describe a result rather than execute and print it",
+    );
+    expect(explainerSystem).toContain(
+      "Prefer one control; use two only when essential, and never use three",
+    );
+    expect(explainerSystem).toContain(
+      "Keep the complete control state space at or below 12 scenarios",
     );
   });
 });
@@ -59,7 +82,11 @@ describe("validatedModelCall", () => {
         initialPrompt: "teach",
         request: firstPass,
       }),
-    ).resolves.toEqual({ data: { answer: "valid" }, repairUsed: false });
+    ).resolves.toEqual({
+      data: { answer: "valid" },
+      repairUsed: false,
+      lenientUsed: false,
+    });
 
     const repaired = vi
       .fn()
@@ -71,7 +98,89 @@ describe("validatedModelCall", () => {
         initialPrompt: "teach",
         request: repaired,
       }),
-    ).resolves.toEqual({ data: { answer: "valid" }, repairUsed: true });
+    ).resolves.toEqual({
+      data: { answer: "valid" },
+      repairUsed: true,
+      lenientUsed: false,
+    });
+  });
+
+  it("accepts a twice-motionless explainer only through the lenient schema", async () => {
+    const source = showcaseBySlug["event-loop"];
+    if (source.archetype !== "stepper")
+      throw new Error("Expected a stepper showcase");
+    const motionless = structuredClone(source);
+    const allChipIds = motionless.chips.map((chip) => chip.id);
+    motionless.steps = motionless.steps.map((step) => ({
+      ...step,
+      columns: step.columns.map((column, index) => ({
+        ...column,
+        chipIds: index === 0 ? allChipIds : [],
+      })),
+    }));
+    const request = vi
+      .fn()
+      .mockResolvedValue(JSON.stringify({ spec: motionless }));
+
+    await expect(
+      validatedModelCallWithMeta({
+        schema: liveGeneratedExplainerSchema,
+        lenientSchema: generatedExplainerSchema,
+        initialPrompt: "teach movement",
+        request,
+      }),
+    ).resolves.toMatchObject({ repairUsed: true, lenientUsed: true });
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("still rejects repaired output with movement and non-movement failures", async () => {
+    const source = showcaseBySlug["event-loop"];
+    if (source.archetype !== "stepper")
+      throw new Error("Expected a stepper showcase");
+    const invalid = structuredClone(source);
+    const allChipIds = invalid.chips.map((chip) => chip.id);
+    invalid.commonQuestions = [];
+    invalid.steps = invalid.steps.map((step) => ({
+      ...step,
+      columns: step.columns.map((column, index) => ({
+        ...column,
+        chipIds: index === 0 ? allChipIds : [],
+      })),
+    }));
+    const request = vi
+      .fn()
+      .mockResolvedValue(JSON.stringify({ spec: invalid }));
+
+    await expect(
+      validatedModelCallWithMeta({
+        schema: liveGeneratedExplainerSchema,
+        lenientSchema: generatedExplainerSchema,
+        initialPrompt: "teach movement",
+        request,
+      }),
+    ).rejects.toMatchObject({ code: "invalid_output" });
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not degrade a generated explainer that already moves", async () => {
+    const request = vi
+      .fn()
+      .mockResolvedValue(
+        JSON.stringify({ spec: showcaseBySlug["event-loop"] }),
+      );
+
+    await expect(
+      validatedModelCallWithMeta({
+        schema: liveGeneratedExplainerSchema,
+        lenientSchema: generatedExplainerSchema,
+        initialPrompt: "teach movement",
+        request,
+      }),
+    ).resolves.toMatchObject({
+      repairUsed: false,
+      lenientUsed: false,
+    });
+    expect(request).toHaveBeenCalledOnce();
   });
 
   it("stops after one failed repair", async () => {

@@ -361,3 +361,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** “Multi-specialist” language can imply independent planning and verification calls that the application intentionally does not make.
 - **Direction changes:** Documented the absence of simulated agent chatter, invented timings, automatic critic calls, and planner latency as an explicit engineering property.
 - **Commit:** `docs: document honest ai pipeline`
+
+## 2026-07-17 — Harden live generation recovery
+
+- **Asked:** Investigate a 23/28 live quality run and make three surgical pipeline fixes: sanitize duplicate live chip placements, accept a twice-motionless explainer only when every safety and structural rule still passes, and tighten exact-example and playground-size prompting.
+- **Implemented:** The live wire transform now deterministically keeps the first chip placement per step before strict renderer validation; the single repair path can fall back to the otherwise-strict generated schema when movement is the sole remaining issue; generation metadata reports that degradation without making the UI claim movement passed; and the prompt now requires self-printing deterministic examples while preferring one control and no more than 12 playground scenarios.
+- **Challenges / uncertainty:** The lenient boundary had to preserve exact common-question, reference, unused-chip, and all other trust checks so a mixed failure could never be mistaken for movement-only degradation. The saved harness output contained validation issues but not the rejected model JSON, so duplicate sanitization is verified with equivalent wire fixtures rather than reconstructing the original response.
+- **Direction changes:** Applied the reliability principle that quality bars repair once and then degrade gracefully, while safety and structural bars still fail hard. Showcase fixtures and shared links continue to use the unchanged strict trust-boundary schema.
+- **Commit:** `fix: harden live generation recovery`

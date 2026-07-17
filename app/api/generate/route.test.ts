@@ -20,6 +20,7 @@ describe("generate route metadata", () => {
         model: "gpt-test",
         generateMs: 812,
         repairUsed: true,
+        movementDegraded: true,
         validation: "zod",
       },
     });
@@ -39,6 +40,9 @@ describe("generate route metadata", () => {
     expect(response.headers.get(generationHeaders.model)).toBe("gpt-test");
     expect(response.headers.get(generationHeaders.generateMs)).toBe("812");
     expect(response.headers.get(generationHeaders.repairUsed)).toBe("true");
+    expect(response.headers.get(generationHeaders.movementDegraded)).toBe(
+      "true",
+    );
     expect(response.headers.get(generationHeaders.validation)).toBe("zod");
   });
 });

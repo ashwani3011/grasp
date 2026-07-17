@@ -52,6 +52,10 @@ export async function POST(request: Request) {
         generationHeaders.repairUsed,
         String(generated.meta.repairUsed),
       );
+      headers.set(
+        generationHeaders.movementDegraded,
+        String(generated.meta.movementDegraded),
+      );
       headers.set(generationHeaders.validation, generated.meta.validation);
       return NextResponse.json(generated.spec, { headers });
     } catch (cause) {
