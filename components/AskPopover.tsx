@@ -1,6 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Loader2, MessageCircleQuestion, X } from "lucide-react";
 import {
@@ -26,58 +33,73 @@ export function AskPopover({
 }) {
   const titleId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const autoSubmitted = useRef(false);
+  const requestInFlight = useRef(false);
   const [question, setQuestion] = useState(initialQuestion);
   const [answer, setAnswer] = useState<AskAnswer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const requestAnswer = useCallback(
+    async (candidateQuestion: string) => {
+      const trimmed = candidateQuestion.trim();
+      if (!trimmed || requestInFlight.current) return;
+      requestInFlight.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ spec, target, question: trimmed }),
+        });
+        const payload: unknown = await response.json();
+        if (!response.ok) {
+          const message =
+            typeof payload === "object" &&
+            payload !== null &&
+            "error" in payload &&
+            typeof payload.error === "string"
+              ? payload.error
+              : "Grasp couldn’t answer that question. Please try again.";
+          throw new Error(message);
+        }
+        const parsed = askAnswerSchema.safeParse(payload);
+        if (!parsed.success)
+          throw new Error(
+            "Grasp received an incomplete answer. Please try again.",
+          );
+        setAnswer(parsed.data);
+      } catch (cause) {
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : "Grasp couldn’t answer that question. Please try again.",
+        );
+      } finally {
+        requestInFlight.current = false;
+        setLoading(false);
+      }
+    },
+    [spec, target],
+  );
+
   useEffect(() => {
     inputRef.current?.focus();
+    if (!autoSubmitted.current && initialQuestion.trim()) {
+      autoSubmitted.current = true;
+      void requestAnswer(initialQuestion);
+    }
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
+  }, [initialQuestion, onClose, requestAnswer]);
 
-  async function submit(event: FormEvent) {
+  function submit(event: FormEvent) {
     event.preventDefault();
-    const trimmed = question.trim();
-    if (!trimmed || loading) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spec, target, question: trimmed }),
-      });
-      const payload: unknown = await response.json();
-      if (!response.ok) {
-        const message =
-          typeof payload === "object" &&
-          payload !== null &&
-          "error" in payload &&
-          typeof payload.error === "string"
-            ? payload.error
-            : "Grasp couldn’t answer that question. Please try again.";
-        throw new Error(message);
-      }
-      const parsed = askAnswerSchema.safeParse(payload);
-      if (!parsed.success)
-        throw new Error(
-          "Grasp received an incomplete answer. Please try again.",
-        );
-      setAnswer(parsed.data);
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Grasp couldn’t answer that question. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
+    void requestAnswer(question);
   }
 
   function selectFollowUp(followUp: string) {
@@ -120,7 +142,7 @@ export function AskPopover({
                 {targetLabel}
               </h2>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                One focused clarification. Answers need the live AI service.
+                Answered in the context of this explainer.
               </p>
             </div>
             <Button

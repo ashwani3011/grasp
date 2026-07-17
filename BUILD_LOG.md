@@ -313,3 +313,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The behavior must generalize beyond JavaScript declarations without introducing concept-specific rewriting or broadening already precise inputs.
 - **Direction changes:** Solved the interpretation class in the model contract rather than adding brittle keyword parsing in application code.
 - **Commit:** `fix: interpret ambiguous family requests`
+
+## 2026-07-17 — Auto-submit seeded questions
+
+- **Asked:** Remove the redundant second click after selecting a common-question chip and replace implementation-focused Ask copy with learner-facing language.
+- **Implemented:** Seeded questions now submit once when the dialog opens, with Strict Mode and in-flight guards preventing duplicate requests; contextual asks without a question remain manual; failures preserve the question for retry; and the dialog now promises an answer in the explainer's context.
+- **Challenges / uncertainty:** React development effects can run twice, so naive mount-time submission could spend two model requests and consume production quota unexpectedly.
+- **Direction changes:** Auto-submit applies only to explicitly seeded questions; follow-up chips still refill the editable input and contextual step/chip/scenario triggers still wait for the learner's question.
+- **Commit:** `fix: auto-submit common questions`
