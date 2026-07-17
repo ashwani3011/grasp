@@ -10,11 +10,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { ExplainerSpec, Level } from "@/lib/schema";
+import { readGenerationMeta, type GenerationMeta } from "@/lib/pipeline";
 import { showcaseBySlug, showcaseSpecs } from "@/lib/showcase";
 import { Explainer } from "@/components/Explainer";
 import { ErrorCard } from "@/components/ErrorCard";
 import { ExplainerSkeleton } from "@/components/ExplainerSkeleton";
 import { InterviewMe } from "@/components/InterviewMe";
+import { PipelineTrace } from "@/components/PipelineTrace";
 import { ShareButton } from "@/components/ShareButton";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +32,9 @@ export function HomeExperience() {
   const [concept, setConcept] = useState(showcaseBySlug["event-loop"].concept);
   const [level, setLevel] = useState<Level>("student");
   const [spec, setSpec] = useState<ExplainerSpec>(showcaseBySlug["event-loop"]);
+  const [generationMeta, setGenerationMeta] = useState<GenerationMeta | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +43,7 @@ export function HomeExperience() {
     if (!trimmed) return;
     setLoading(true);
     setError(null);
+    setGenerationMeta(null);
     setConcept(trimmed);
     try {
       const response = await fetch("/api/generate", {
@@ -51,6 +57,7 @@ export function HomeExperience() {
           payload.error ?? "Generation is temporarily unavailable.",
         );
       setSpec(payload);
+      setGenerationMeta(readGenerationMeta(response.headers));
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -67,6 +74,7 @@ export function HomeExperience() {
     setInput(nextSpec.concept);
     setLevel(nextSpec.level);
     setSpec(nextSpec);
+    setGenerationMeta(null);
     setError(null);
     document
       .getElementById("result")
@@ -214,11 +222,16 @@ export function HomeExperience() {
           ) : (
             <>
               <Explainer spec={spec} actions={<ShareButton spec={spec} />} />
-              <InterviewMe
-                key={`${spec.title}-${spec.level}`}
-                concept={concept}
-                spec={spec}
-              />
+              {generationMeta && (
+                <PipelineTrace spec={spec} meta={generationMeta} />
+              )}
+              <div id="interview-mode" className="scroll-mt-6">
+                <InterviewMe
+                  key={`${spec.title}-${spec.level}`}
+                  concept={concept}
+                  spec={spec}
+                />
+              </div>
             </>
           )}
         </div>

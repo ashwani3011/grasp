@@ -337,3 +337,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Wrapping the API response in `{ spec, meta }` would break existing clients and cause strict share validation to reject the extra field.
 - **Direction changes:** Used same-origin response headers for live-only metadata and left Interview, Ask, cached showcases, shared URLs, and the quality harness on their existing contracts.
 - **Commit:** `feat: report generation pipeline metadata`
+
+## 2026-07-17 — Show an honest live pipeline trace
+
+- **Asked:** Turn the AI pipeline into a visible experience while ensuring every displayed stage corresponds to work that truly occurred.
+- **Implemented:** Added a live-only “How this was made” trace showing the real Builder model/duration, conditional Repairer, deterministic Zod Inspector checks, the model's actual archetype rationale, and an Examiner link to Interview mode. Cached and shared explainers receive no metadata and render unchanged.
+- **Challenges / uncertainty:** Archetype selection occurs inside the Builder call, not in a separate Architect call, and validation has no separately observable client timing.
+- **Direction changes:** Labels describe the actual single-call pipeline and named applied checks; omitted fabricated agent roles, fake timings, and a manually maintained invariant count.
+- **Commit:** `feat: show live pipeline trace`
