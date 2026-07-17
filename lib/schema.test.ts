@@ -23,6 +23,9 @@ describe("explainer schemas", () => {
     expect(() =>
       zodTextFormat(interviewAssessmentSchema, "grasp_assessment"),
     ).not.toThrow();
+    expect(() =>
+      zodTextFormat(askAnswerSchema, "grasp_ask_answer"),
+    ).not.toThrow();
   });
 
   it("normalizes generated playground arrays into validated renderer maps", () => {

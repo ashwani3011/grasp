@@ -281,3 +281,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The interaction must make code concrete without implying that Grasp executes arbitrary model output.
 - **Direction changes:** Kept the proof entirely presentational; it displays validated strings and never evaluates, edits, or submits the snippet.
 - **Commit:** `feat: render learning frame proofs`
+
+## 2026-07-17 — Add guarded contextual Ask API
+
+- **Asked:** Let learners ask one focused question about a selected step, chip, scenario, or the explainer as a whole without mutating the source spec.
+- **Implemented:** Added `/api/ask` with strict spec/question/target validation, target-existence checks, the shared AI admission lease and response headers, friendly failures, and a compact validated model call with one repair attempt. Untrusted spec and question content is delimited and explicitly denied instruction authority.
+- **Challenges / uncertainty:** A schema-valid target ID can still reference the wrong archetype or a nonexistent entity, requiring relational validation against the complete parsed spec.
+- **Direction changes:** Limited each request to one ephemeral answer and optional next question; no conversation persistence, spec mutation, or executable content was introduced.
+- **Commit:** `feat: add contextual ask api`
