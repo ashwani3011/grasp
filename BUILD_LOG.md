@@ -257,3 +257,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** New learning fields must be required enough to improve live lessons without invalidating existing cached payloads or shared URLs created before the feature.
 - **Direction changes:** Kept the renderer/share schema backward-compatible while applying the three-question requirement only at the live-generation boundary.
 - **Commit:** `feat: add learning frame schemas`
+
+## 2026-07-17 — Generate complete learning frames
+
+- **Asked:** Make every fresh explainer a concise micro-lesson while preserving model-output validation and the existing self-repair loop.
+- **Implemented:** Extended the generation contract with level-matched pain hooks, optional exact predict-then-reveal proofs, and three natural learner follow-ups; explicitly directs the model to return no proof when exact output is uncertain.
+- **Challenges / uncertainty:** Zod can bound the proof fields but cannot establish semantic correctness, so the prompt treats output exactness as the highest-priority claim and favors null over guessing.
+- **Direction changes:** Kept learning-frame generation inside the existing single structured response rather than adding latency and another model call.
+- **Commit:** `feat: generate learning frames`

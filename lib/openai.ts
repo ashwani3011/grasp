@@ -176,6 +176,11 @@ Stepper design rules:
 - Prefer 3-6 steps and 2-4 columns. Keep each step visually sparse.
 - For “X vs Y” or quantitative comparisons, use a playground unless there is a real ordered lifecycle to animate.
 
+Learning frame:
+- hook is one concrete sentence naming why this matters at the requested level. Name the symptom or developer pain, never use marketing language.
+- example is included only when a short snippet genuinely proves the core idea. code is plain text with no markdown fences, no more than about 12 lines, and no comments narrating the obvious. output must be exactly what the snippet prints or produces. Exactness is the highest priority: when unsure, return null instead.
+- commonQuestions contains exactly three short, natural follow-up questions a learner at this level would ask after the walkthrough. They clarify the mechanism or its practical consequences; never use trivia.
+
 Match the requested level:
 - beginner: use concrete analogies and minimal jargon.
 - student: explain clearly and define the key terms.
