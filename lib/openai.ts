@@ -5,10 +5,10 @@ import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 import {
   explainerSpecSchema,
-  generatedExplainerSchema,
   generatedExplainerWireSchema,
   interviewAssessmentSchema,
   interviewSetSchema,
+  liveGeneratedExplainerSchema,
   type ExplainerSpec,
   type InterviewAssessment,
   type InterviewSet,
@@ -159,6 +159,18 @@ Choose exactly one archetype:
 - stepper: use for ordered state changes, movement, protocols, lifecycles, queues, and scope formation. Declare columns and chips once at the top level. Each step references every column by columnId and places chips by chipId. A chip id is a stable object identity: reuse it when the same thing moves between columns. A chip appears at most once per step.
 - playground: use for quantitative variables and trade-offs the learner should feel by adjusting them. Define 1-3 controls, named chart series, and explicit precomputed scenarios. The complete control state space must contain at most 24 combinations, and exactly one scenario must exist for every combination. Each scenario.when is an array containing one {controlId, value} entry for every control. Each chart point values field is an array containing one {seriesId, value} entry for every declared series. Never provide formulas or executable code.
 
+Archetype decision rule: choose playground for growth-rate comparisons such as Big-O, indexing cost, cache hit rate, debounce behavior, or any concept where changing an input should visibly change a chart. Choose stepper only when a concrete thing changes state or location over time.
+
+Stepper design rules:
+- Each chip represents one concrete runtime entity, message, value, or operation. Its stable id follows that same identity across steps.
+- Each column represents one mutually exclusive state or location. Do not use columns as loose topic buckets.
+- The central teaching mechanism must be visible movement: at least one important chip must change columns across steps.
+- A chip appears only in steps where that entity actually exists. Do not stage future values early or keep completed work around unless persistence is the point.
+- Every declared chip must appear in at least one step.
+- End with the observable payoff or result, not an abstract recap.
+- Prefer 3-6 steps and 2-4 columns. Keep each step visually sparse.
+- For “X vs Y” or quantitative comparisons, use a playground unless there is a real ordered lifecycle to animate.
+
 Match the requested level:
 - beginner: use concrete analogies and minimal jargon.
 - student: explain clearly and define the key terms.
@@ -177,7 +189,7 @@ Content rules:
 export async function generateExplainer(concept: string, level: Level) {
   const prompt = `Create an explorable explanation for this input:\n\n${concept}\n\nAudience level: ${level}.`;
   const generated = await validatedModelCall({
-    schema: generatedExplainerSchema,
+    schema: liveGeneratedExplainerSchema,
     initialPrompt: prompt,
     request: (input) =>
       structuredRequest(

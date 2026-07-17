@@ -514,6 +514,45 @@ export const generatedExplainerSchema = generatedExplainerWireSchema
     return z.NEVER;
   });
 
+/**
+ * Generation-time invariant on top of the trust boundary: a freshly generated
+ * stepper must animate. Showcase fixtures and shared links are intentionally
+ * not re-validated against this rule.
+ */
+export const liveGeneratedExplainerSchema =
+  generatedExplainerSchema.superRefine((spec, ctx) => {
+    if (spec.archetype !== "stepper") return;
+    const lastColumn = new Map<string, string>();
+    const usedChips = new Set<string>();
+    let moves = false;
+    for (const step of spec.steps)
+      for (const column of step.columns)
+        for (const chipId of column.chipIds) {
+          usedChips.add(chipId);
+          const previous = lastColumn.get(chipId);
+          if (previous !== undefined && previous !== column.columnId)
+            moves = true;
+          lastColumn.set(chipId, column.columnId);
+        }
+    if (!moves)
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "No chip ever changes column across steps. Movement is the explanation: make the key object (a request, callback, value, or lookup probe) travel between columns, ending on the payoff step.",
+        path: ["spec", "steps"],
+      });
+
+    const unusedChipIds = spec.chips
+      .map((chip) => chip.id)
+      .filter((chipId) => !usedChips.has(chipId));
+    if (unusedChipIds.length > 0)
+      ctx.addIssue({
+        code: "custom",
+        message: `Every declared chip must appear in at least one step. Unused chips: ${unusedChipIds.join(", ")}`,
+        path: ["spec", "steps"],
+      });
+  });
+
 export type Level = z.infer<typeof levelSchema>;
 export type StepperSpec = z.output<typeof stepperSpecSchema>;
 export type PlaygroundSpec = z.output<typeof playgroundSpecSchema>;

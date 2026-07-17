@@ -6,6 +6,7 @@ import {
   generatedExplainerWireSchema,
   interviewAssessmentSchema,
   interviewSetSchema,
+  liveGeneratedExplainerSchema,
 } from "@/lib/schema";
 import { showcaseSpecs } from "@/lib/showcase";
 
@@ -54,6 +55,58 @@ describe("explainer schemas", () => {
     expect(showcaseSpecs).toHaveLength(8);
     for (const spec of showcaseSpecs)
       expect(explainerSpecSchema.safeParse(spec).success).toBe(true);
+  });
+
+  it("requires a live-generated stepper to animate a stable chip", () => {
+    const source = showcaseSpecs.find((spec) => spec.archetype === "stepper");
+    if (!source || source.archetype !== "stepper")
+      throw new Error("Expected a stepper showcase");
+
+    expect(
+      liveGeneratedExplainerSchema.safeParse({ spec: source }).success,
+    ).toBe(true);
+
+    const staticStepper = structuredClone(source);
+    const allChipIds = staticStepper.chips.map((chip) => chip.id);
+    staticStepper.steps = staticStepper.steps.map((step) => ({
+      ...step,
+      columns: step.columns.map((column, index) => ({
+        ...column,
+        chipIds: index === 0 ? allChipIds : [],
+      })),
+    }));
+    const result = liveGeneratedExplainerSchema.safeParse({
+      spec: staticStepper,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success)
+      expect(result.error.issues.map((issue) => issue.message)).toContain(
+        "No chip ever changes column across steps. Movement is the explanation: make the key object (a request, callback, value, or lookup probe) travel between columns, ending on the payoff step.",
+      );
+  });
+
+  it("rejects unused chips from live-generated steppers", () => {
+    const source = showcaseSpecs.find((spec) => spec.archetype === "stepper");
+    if (!source || source.archetype !== "stepper")
+      throw new Error("Expected a stepper showcase");
+
+    const withUnusedChip = structuredClone(source);
+    withUnusedChip.chips.push({
+      id: "unused",
+      label: "Unused",
+      detail: null,
+      tone: "slate",
+    });
+    const result = liveGeneratedExplainerSchema.safeParse({
+      spec: withUnusedChip,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success)
+      expect(result.error.issues.map((issue) => issue.message)).toContain(
+        "Every declared chip must appear in at least one step. Unused chips: unused",
+      );
   });
 
   it("rejects a step that references an unknown chip", () => {

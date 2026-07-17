@@ -233,3 +233,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Live generations are stochastic and billable, so the harness is intentionally local-only and remains outside CI; semantic correctness still requires human review after automated structural flags.
 - **Direction changes:** Explicitly separated comprehensive local quality runs from production rate-limit smoke testing; the harness cannot target a deployed host.
 - **Commit:** `test: add local live generation harness`
+
+## 2026-07-17 — Enforce generated explainer quality
+
+- **Asked:** Use the local harness findings to improve the product while keeping all testing bypasses out of production.
+- **Implemented:** Strengthened archetype selection and Stepper construction guidance, required live-generated steppers to move at least one stable chip, rejected declared chips that never appear, and added regression tests for both generation-only invariants.
+- **Challenges / uncertainty:** Structural validation can guarantee visible movement and internal consistency, but semantic correctness remains a human-review concern; the rules therefore target the repeated, objectively detectable failures without over-constraining valid explanations.
+- **Direction changes:** Applied stricter invariants only to fresh model output so verified showcase specs and offline shared URLs retain their stable compatibility boundary.
+- **Commit:** `fix: enforce generated explainer quality`
