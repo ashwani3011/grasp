@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { clientIdentifier, createAiRequestGuard } from "@/lib/ai-request-guard";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  beginAiRequest,
+  clientIdentifier,
+  createAiRequestGuard,
+} from "@/lib/ai-request-guard";
 import { ConcurrencyLimiter, TokenBucketRateLimiter } from "@/lib/rate-limit";
 
 function request(headers: HeadersInit = {}) {
@@ -7,6 +11,8 @@ function request(headers: HeadersInit = {}) {
 }
 
 describe("AI request guard", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   it("uses the first proxy-provided client address", () => {
     expect(
       clientIdentifier(request({ "x-forwarded-for": "203.0.113.8, 10.0.0.1" })),
@@ -59,5 +65,28 @@ describe("AI request guard", () => {
       headers: { "Retry-After": "3" },
     });
     if (active.allowed) active.release();
+  });
+
+  it("allows an explicit local test bypass", () => {
+    vi.stubEnv("DISABLE_AI_GUARD", "1");
+    vi.stubEnv("NODE_ENV", "development");
+
+    const admission = beginAiRequest(request());
+    expect(admission).toMatchObject({ allowed: true, headers: {} });
+    if (admission.allowed) admission.release();
+  });
+
+  it("never honors the local bypass in production", () => {
+    vi.stubEnv("DISABLE_AI_GUARD", "1");
+    vi.stubEnv("NODE_ENV", "production");
+
+    const admission = beginAiRequest(
+      request({ "x-forwarded-for": "203.0.113.99" }),
+    );
+    expect(admission.allowed).toBe(true);
+    if (admission.allowed) {
+      expect(admission.headers["X-RateLimit-Limit"]).toBe("6");
+      admission.release();
+    }
   });
 });

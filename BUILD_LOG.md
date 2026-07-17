@@ -217,3 +217,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The key, quota, model, and plain Responses API path were healthy. Grasp's schemas violated three structured-output constraints: a root union, arbitrary-key records that emit unsupported `propertyNames`, and optional fields that were not nullable.
 - **Direction changes:** Added a transport-only schema tailored to OpenAI's strict JSON Schema subset while preserving the existing renderer schema, Zod trust boundary, complete scenario validation, and one-repair behavior.
 - **Commit:** `fix: repair live structured generation`
+
+## 2026-07-17 — Support local live quality diagnostics
+
+- **Asked:** Keep production limits unchanged while allowing the local quality harness to exercise many real generations and reveal why repaired outputs still fail.
+- **Implemented:** Added an explicit AI-guard bypass that works only outside production, returned compact Zod validation issues only in non-production generation errors, and added regression tests proving the bypass and diagnostics cannot leak into production behavior.
+- **Challenges / uncertainty:** The harness needs enough throughput for stochastic sampling, but the production limiter is a launch safeguard and must remain impossible to bypass through deployment configuration.
+- **Direction changes:** Kept all bypass and diagnostic behavior runtime-gated to local/non-production environments; no production limit was altered.
+- **Commit:** `test: support local live quality diagnostics`

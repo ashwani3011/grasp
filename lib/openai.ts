@@ -273,6 +273,8 @@ export function publicGenerationError(cause: unknown) {
         status: 502,
         message:
           "The AI returned an unsafe or incomplete explainer twice. Please try again.",
+        // Validation issues are exposed only outside production for debugging.
+        ...(process.env.NODE_ENV !== "production" && { debug: cause.cause }),
       };
   }
   return {

@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 vi.mock("server-only", () => ({}));
@@ -8,6 +8,8 @@ let validatedModelCall: typeof import("@/lib/openai").validatedModelCall;
 beforeAll(async () => {
   ({ validatedModelCall } = await import("@/lib/openai"));
 });
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe("validatedModelCall", () => {
   const schema = z.object({ answer: z.string().min(3) }).strict();
@@ -79,5 +81,33 @@ describe("validatedModelCall", () => {
     const repairPrompt = request.mock.calls[1][0];
     expect(repairPrompt).toContain("field_15");
     expect(repairPrompt).not.toContain("field_16");
+  });
+});
+
+describe("publicGenerationError", () => {
+  it("includes compact validation diagnostics outside production", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const { GenerationError, publicGenerationError } =
+      await import("@/lib/openai");
+    const issues = [{ path: ["spec", "steps"], message: "must move" }];
+
+    expect(
+      publicGenerationError(
+        new GenerationError("invalid_output", "invalid", issues),
+      ),
+    ).toMatchObject({ status: 502, debug: issues });
+  });
+
+  it("never exposes validation diagnostics in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const { GenerationError, publicGenerationError } =
+      await import("@/lib/openai");
+    const error = publicGenerationError(
+      new GenerationError("invalid_output", "invalid", [
+        { path: ["spec"], message: "invalid" },
+      ]),
+    );
+
+    expect(error).not.toHaveProperty("debug");
   });
 });

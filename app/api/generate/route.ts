@@ -43,10 +43,13 @@ export async function POST(request: Request) {
       );
     } catch (cause) {
       const error = publicGenerationError(cause);
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status, headers: admission.headers },
-      );
+      const payload: Record<string, unknown> = { error: error.message };
+      if ("debug" in error && error.debug !== undefined)
+        payload.debug = error.debug;
+      return NextResponse.json(payload, {
+        status: error.status,
+        headers: admission.headers,
+      });
     }
   } finally {
     admission.release();

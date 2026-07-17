@@ -75,5 +75,10 @@ const beginRequest = createAiRequestGuard({
 });
 
 export function beginAiRequest(request: Request): AiRequestAdmission {
+  if (
+    process.env.DISABLE_AI_GUARD === "1" &&
+    process.env.NODE_ENV !== "production"
+  )
+    return { allowed: true, headers: {}, release: () => {} };
   return beginRequest(request);
 }
