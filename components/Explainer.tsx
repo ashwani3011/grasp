@@ -1,6 +1,7 @@
 import { Lightbulb } from "lucide-react";
 import type { ExplainerSpec } from "@/lib/schema";
 import { ArchetypeBadge } from "@/components/ArchetypeBadge";
+import { CodeProof } from "@/components/CodeProof";
 import { Playground } from "@/components/Playground";
 import { Stepper } from "@/components/Stepper";
 import { Card } from "@/components/ui/card";
@@ -27,6 +28,11 @@ export function Explainer({
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
               {spec.summary}
             </p>
+            {spec.hook && (
+              <p className="mt-4 max-w-3xl border-l-2 border-violet-400 pl-3 text-sm leading-6 font-semibold text-slate-700">
+                {spec.hook}
+              </p>
+            )}
           </div>
           {actions}
         </div>
@@ -36,6 +42,9 @@ export function Explainer({
           <Stepper spec={spec} />
         ) : (
           <Playground spec={spec} />
+        )}
+        {spec.example && (
+          <CodeProof key={spec.example.code} example={spec.example} />
         )}
       </div>
       <footer className="flex gap-3 border-t border-slate-100 bg-slate-50/70 p-5 text-sm leading-6 text-slate-700 sm:px-7">

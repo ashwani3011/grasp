@@ -273,3 +273,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Database plans, OAuth exchanges, cache behavior, and debounce timing do not have one short environment-independent output, so forcing snippets would create false confidence.
 - **Direction changes:** Used code proofs only for the three showcases where the output is deterministic and directly demonstrates the central mechanism.
 - **Commit:** `content: add showcase learning frames`
+
+## 2026-07-17 — Render predict-then-reveal proofs
+
+- **Asked:** Complete the explainer's learning arc with a felt developer hook and a code proof that asks learners to predict before revealing.
+- **Implemented:** Rendered level-matched hooks beneath the title and added a responsive read-only “Prove it in code” card with monospace source, explicit reveal action, animated exact output, explanatory note, and state reset when the example changes.
+- **Challenges / uncertainty:** The interaction must make code concrete without implying that Grasp executes arbitrary model output.
+- **Direction changes:** Kept the proof entirely presentational; it displays validated strings and never evaluates, edits, or submits the snippet.
+- **Commit:** `feat: render learning frame proofs`
