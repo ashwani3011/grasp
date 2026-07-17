@@ -265,3 +265,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Zod can bound the proof fields but cannot establish semantic correctness, so the prompt treats output exactness as the highest-priority claim and favors null over guessing.
 - **Direction changes:** Kept learning-frame generation inside the existing single structured response rather than adding latency and another model call.
 - **Commit:** `feat: generate learning frames`
+
+## 2026-07-17 — Curate showcase learning frames
+
+- **Asked:** Make the eight instant examples complete micro-lessons without sacrificing the expert-reviewed correctness that anchors the demo.
+- **Implemented:** Hand-authored a concrete hook and three natural follow-ups for every showcase; added exact event-loop, closure, and quadratic-loop proofs; deliberately left unsuitable examples null; and added completeness, uniqueness, output, and practical share-URL-size checks.
+- **Challenges / uncertainty:** Database plans, OAuth exchanges, cache behavior, and debounce timing do not have one short environment-independent output, so forcing snippets would create false confidence.
+- **Direction changes:** Used code proofs only for the three showcases where the output is deterministic and directly demonstrates the central mechanism.
+- **Commit:** `content: add showcase learning frames`

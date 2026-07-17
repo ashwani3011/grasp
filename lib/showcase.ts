@@ -18,6 +18,17 @@ const eventLoop: StepperSpecInput = {
     "Order and movement are the idea, so a step-by-step timeline makes the scheduling rules visible.",
   keyTakeaway:
     "After synchronous code finishes, microtasks drain completely before the next task is taken.",
+  hook: "This is why a resolved promise can log before a zero-delay timer.",
+  example: {
+    code: "console.log('A');\nsetTimeout(() => console.log('B'), 0);\nPromise.resolve().then(() => console.log('C'));\nconsole.log('D');",
+    output: "A D C B",
+    note: "Synchronous logs run first, then microtasks, then the next task.",
+  },
+  commonQuestions: [
+    "Why do microtasks run before timer callbacks?",
+    "Can microtasks delay rendering?",
+    "Where does async/await continuation run?",
+  ],
   columns: [
     { id: "stack", title: "Call stack", hint: "Runs now" },
     { id: "web", title: "Web APIs", hint: "Waiting outside JS" },
@@ -110,6 +121,17 @@ const closures: StepperSpecInput = {
     "Following the function separately from its lexical environment shows what survives the outer call.",
   keyTakeaway:
     "A closure retains access to the lexical environment where it was created, not a frozen copy of each value.",
+  hook: "This is why a returned function can remember state after its creator has finished.",
+  example: {
+    code: "function makeCounter() {\n  let count = 0;\n  return () => ++count;\n}\nconst counter = makeCounter();\nconsole.log(counter(), counter());",
+    output: "1 2",
+    note: "Both calls update the same captured count binding.",
+  },
+  commonQuestions: [
+    "Does a closure copy captured values?",
+    "When can a captured scope be garbage-collected?",
+    "Why does var behave differently in loop callbacks?",
+  ],
   columns: [
     { id: "active", title: "Active call", hint: "Executing now" },
     { id: "environment", title: "Lexical environment", hint: "Bindings" },
@@ -199,6 +221,13 @@ const oauth: StepperSpecInput = {
     "Following each artifact across trust boundaries makes the server-side code exchange explicit.",
   keyTakeaway:
     "The short-lived code travels through the browser; the backend exchanges it for tokens using a protected channel.",
+  hook: "This flow lets an app gain limited access without ever receiving the user's password.",
+  example: null,
+  commonQuestions: [
+    "Why is the authorization code short-lived?",
+    "What does the state parameter prevent?",
+    "When should a client use PKCE?",
+  ],
   columns: [
     { id: "browser", title: "Browser", hint: "User agent" },
     {
@@ -287,6 +316,13 @@ const caching: StepperSpecInput = {
     "Following a cache miss shows when a value exists at the origin, enters the cache, and reaches the client.",
   keyTakeaway:
     "A cache improves latency only when keys, freshness, invalidation, and fallback behavior are all correct.",
+  hook: "This is why the same endpoint can be instant on one request and slow on the next.",
+  example: null,
+  commonQuestions: [
+    "What makes a good cache key?",
+    "How should stale entries be invalidated?",
+    "What prevents a cache stampede?",
+  ],
   columns: [
     { id: "client", title: "Client" },
     { id: "cache", title: "Cache" },
@@ -382,6 +418,13 @@ const indexing: PlaygroundSpecInput = {
     "Changing table size makes the widening gap between linear scanning and logarithmic lookup visible.",
   keyTakeaway:
     "Indexes trade write cost and storage for dramatically less read work on selective queries.",
+  hook: "This is why a query that was fast in development can stall against a production-sized table.",
+  example: null,
+  commonQuestions: [
+    "Why can an index slow down writes?",
+    "When will the query planner ignore an index?",
+    "How does column order affect a composite index?",
+  ],
   controls: [
     {
       id: "size",
@@ -448,6 +491,17 @@ const bigO: PlaygroundSpecInput = {
     "Adjusting n reveals how a quadratic curve bends away from linear growth.",
   keyTakeaway:
     "Big-O describes how work grows; constants matter locally, but growth dominates at scale.",
+  hook: "This is why code that feels instant for 10 items can freeze when the input reaches 10,000.",
+  example: {
+    code: "let operations = 0;\nfor (let i = 0; i < 3; i++) {\n  for (let j = 0; j < 3; j++) operations++;\n}\nconsole.log(operations);",
+    output: "9",
+    note: "Two loops over n items perform n² operations: 3² is 9.",
+  },
+  commonQuestions: [
+    "When do constants matter despite Big-O?",
+    "Why is O(n log n) better than O(n²)?",
+    "Does Big-O describe average or worst case?",
+  ],
   controls: [
     {
       id: "size",
@@ -508,6 +562,13 @@ const cacheRates: PlaygroundSpecInput = {
     "Adjusting traffic makes the origin work avoided by a fixed cache hit rate tangible.",
   keyTakeaway:
     "At high traffic, improving hit rate by a few points can remove a large amount of origin load.",
+  hook: "This is why a seemingly strong hit rate can still leave your database overloaded at high traffic.",
+  example: null,
+  commonQuestions: [
+    "How is cache hit rate measured?",
+    "Why can a high hit rate still hide poor latency?",
+    "Which requests should bypass the cache?",
+  ],
   controls: [
     {
       id: "size",
@@ -568,6 +629,13 @@ const debounce: PlaygroundSpecInput = {
     "Changing burst size shows how trailing-edge debounce collapses a continuous burst into one call.",
   keyTakeaway:
     "Debouncing waits for quiet before acting, trading a small delay for far fewer repeated calls.",
+  hook: "This is why a search box can avoid sending a network request for every keystroke.",
+  example: null,
+  commonQuestions: [
+    "How is debounce different from throttle?",
+    "What changes with leading-edge debounce?",
+    "How should pending work be cancelled?",
+  ],
   controls: [
     {
       id: "size",

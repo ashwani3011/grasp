@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlaygroundSpec, StepperSpec } from "@/lib/schema";
+import { encodeSpec } from "@/lib/share";
 import { showcaseBySlug } from "@/lib/showcase";
 
 function stepper(slug: string): StepperSpec {
@@ -23,6 +24,31 @@ function playground(slug: string): PlaygroundSpec {
 }
 
 describe("showcase content correctness", () => {
+  it("provides a complete, shareable learning frame for every showcase", () => {
+    for (const spec of Object.values(showcaseBySlug)) {
+      expect(spec.hook).not.toBeNull();
+      expect(spec.commonQuestions).toHaveLength(3);
+      expect(new Set(spec.commonQuestions).size).toBe(3);
+      expect(encodeSpec(spec).length).toBeLessThan(20_000);
+    }
+  });
+
+  it("uses exact hand-verified outputs for code proofs", () => {
+    expect(showcaseBySlug["event-loop"].example).toMatchObject({
+      output: "A D C B",
+    });
+    expect(showcaseBySlug.closures.example).toMatchObject({ output: "1 2" });
+    expect(showcaseBySlug["big-o"].example).toMatchObject({ output: "9" });
+    for (const slug of [
+      "database-indexing",
+      "oauth",
+      "caching",
+      "cache-hit-rate",
+      "debouncing",
+    ])
+      expect(showcaseBySlug[slug].example).toBeNull();
+  });
+
   it("represents only real stack frames in the initial event-loop state", () => {
     const spec = stepper("event-loop");
     expect(
