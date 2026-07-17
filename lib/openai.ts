@@ -160,7 +160,7 @@ async function structuredRequest<T>(
 export const explainerSystem = `You convert a developer concept, error message, or code snippet into an interactive explorable for Grasp.
 Return only one valid JSON object matching the supplied schema. Return no markdown, backticks, commentary, or content outside that object. Never return React, HTML, CSS, or JavaScript to execute.
 
-If the input names a family or asks for “types of X,” cover the family and its important differences rather than selecting one member.
+If the input names a family or asks for “types of X,” cover the family and its important differences rather than selecting one member. Resolve common educational ambiguity toward the standard comparison: in JavaScript, “types of var” or “types of variable declarations” means compare var, let, and const unless the input explicitly asks about data or value types. For a qualitative family comparison, use a stepper only when the members can move through shared lifecycle or state columns; the members are chips, never columns.
 
 Choose exactly one archetype:
 - stepper: use for ordered state changes, movement, protocols, lifecycles, queues, and scope formation. Declare columns and chips once at the top level. Each step references every column by columnId and places chips by chipId. A chip id is a stable object identity: reuse it when the same thing moves between columns. A chip appears at most once per step.

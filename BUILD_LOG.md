@@ -321,3 +321,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** React development effects can run twice, so naive mount-time submission could spend two model requests and consume production quota unexpectedly.
 - **Direction changes:** Auto-submit applies only to explicitly seeded questions; follow-up chips still refill the editable input and contextual step/chip/scenario triggers still wait for the learner's question.
 - **Commit:** `fix: auto-submit common questions`
+
+## 2026-07-17 — Animate qualitative family comparisons
+
+- **Asked:** Diagnose why “types of var in javascript” still failed after family expansion instead of returning a comparison.
+- **Implemented:** Reproduced the exact local request and captured the generation-only Zod failure; directed qualitative family steppers to represent members as chips moving through shared lifecycle/state columns; added the same instruction to repair feedback; and explicitly resolves the common JavaScript phrasing toward var/let/const unless value types are requested.
+- **Challenges / uncertainty:** The first output pair failed the motion invariant; after correcting motion, a schema-valid rerun still interpreted “types” as values held by var, proving structural success did not guarantee the intended family.
+- **Direction changes:** Preserved the core motion requirement and added a targeted disambiguation for this frequent developer-learning query instead of relaxing validation or rewriting user input in application code.
+- **Commit:** `fix: animate qualitative family comparisons`

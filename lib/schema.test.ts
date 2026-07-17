@@ -137,7 +137,7 @@ describe("explainer schemas", () => {
     expect(result.success).toBe(false);
     if (!result.success)
       expect(result.error.issues.map((issue) => issue.message)).toContain(
-        "No chip ever changes column across steps. Movement is the explanation: make the key object (a request, callback, value, or lookup probe) travel between columns, ending on the payoff step.",
+        "No chip ever changes column across steps. Movement is the explanation: make the key object (a request, callback, value, or lookup probe) travel between columns, ending on the payoff step. For a family comparison, make each member a chip that moves through shared lifecycle or state columns; never make the members columns.",
       );
   });
 

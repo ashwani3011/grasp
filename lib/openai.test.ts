@@ -15,6 +15,10 @@ describe("explainer prompt", () => {
     expect(explainerSystem).toContain(
       "cover the family and its important differences rather than selecting one member",
     );
+    expect(explainerSystem).toContain("the members are chips, never columns");
+    expect(explainerSystem).toContain(
+      "means compare var, let, and const unless the input explicitly asks about data or value types",
+    );
   });
 });
 
