@@ -289,3 +289,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** A schema-valid target ID can still reference the wrong archetype or a nonexistent entity, requiring relational validation against the complete parsed spec.
 - **Direction changes:** Limited each request to one ephemeral answer and optional next question; no conversation persistence, spec mutation, or executable content was introduced.
 - **Commit:** `feat: add contextual ask api`
+
+## 2026-07-17 — Add contextual Ask interactions
+
+- **Asked:** Connect the learning frame to a focused follow-up loop from steps, animated chips, playground scenarios, and seeded common questions.
+- **Implemented:** Added one centralized responsive Ask dialog with keyboard/outside-click dismissal, focused input, loading and inline error states, validated client responses, suggested-follow-up refill, and contextual triggers throughout both primitives. Chip triggers preserve stable Framer Motion layout identity.
+- **Challenges / uncertainty:** Independent popovers inside every animated primitive would duplicate state, risk clipping on mobile, and complicate the one-open-at-a-time requirement.
+- **Direction changes:** Used a single viewport-contained dialog/bottom-sheet surface owned by the explainer; triggers only select context and never mutate the shared spec.
+- **Commit:** `feat: add contextual ask interactions`

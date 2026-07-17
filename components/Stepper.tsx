@@ -2,8 +2,13 @@
 
 import { useId, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Lightbulb } from "lucide-react";
-import type { StepperSpec } from "@/lib/schema";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Lightbulb,
+  MessageCircleQuestion,
+} from "lucide-react";
+import type { AskTarget, StepperSpec } from "@/lib/schema";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +20,13 @@ const chipTone = {
   slate: "border-slate-200 bg-slate-50 text-slate-800",
 };
 
-export function Stepper({ spec }: { spec: StepperSpec }) {
+export function Stepper({
+  spec,
+  onAsk,
+}: {
+  spec: StepperSpec;
+  onAsk?: (target: AskTarget, label: string) => void;
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
   const instanceId = useId();
   const activeStep = spec.steps[activeIndex];
@@ -85,7 +96,7 @@ export function Stepper({ spec }: { spec: StepperSpec }) {
                     layout
                     transition={{ type: "spring", stiffness: 330, damping: 28 }}
                     className={cn(
-                      "rounded-xl border p-3 shadow-sm",
+                      "group relative rounded-xl border p-3 pr-10 shadow-sm",
                       chipTone[chip.tone],
                     )}
                   >
@@ -94,6 +105,19 @@ export function Stepper({ spec }: { spec: StepperSpec }) {
                       <div className="mt-1 text-xs leading-4 opacity-70">
                         {chip.detail}
                       </div>
+                    )}
+                    {onAsk && (
+                      <button
+                        type="button"
+                        aria-label={`Ask about ${chip.label}`}
+                        title={`Ask about ${chip.label}`}
+                        onClick={() =>
+                          onAsk({ kind: "chip", id: chip.id }, chip.label)
+                        }
+                        className="absolute top-2 right-2 flex size-7 items-center justify-center rounded-lg text-current opacity-60 transition hover:bg-white/70 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:outline-none"
+                      >
+                        <MessageCircleQuestion className="size-3.5" />
+                      </button>
                     )}
                   </motion.div>
                 );
@@ -115,9 +139,23 @@ export function Stepper({ spec }: { spec: StepperSpec }) {
             <div className="text-xs font-bold tracking-[0.14em] text-violet-600 uppercase">
               Step {activeIndex + 1} of {spec.steps.length}
             </div>
-            <h3 className="mt-1 text-xl font-bold tracking-tight text-slate-950">
-              {activeStep.title}
-            </h3>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <h3 className="text-xl font-bold tracking-tight text-slate-950">
+                {activeStep.title}
+              </h3>
+              {onAsk && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onAsk({ kind: "step", id: activeStep.id }, activeStep.title)
+                  }
+                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-violet-700 transition hover:bg-violet-50"
+                >
+                  <MessageCircleQuestion className="size-3.5" />
+                  Ask this step
+                </button>
+              )}
+            </div>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
               {activeStep.description}
             </p>

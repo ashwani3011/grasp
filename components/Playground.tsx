@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { MessageCircleQuestion } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -11,8 +12,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { PlaygroundSpec } from "@/lib/schema";
+import type { AskTarget, PlaygroundSpec } from "@/lib/schema";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const colors = {
   violet: "#7c3aed",
@@ -23,7 +25,13 @@ const colors = {
 
 type ControlValue = string | number | boolean;
 
-export function Playground({ spec }: { spec: PlaygroundSpec }) {
+export function Playground({
+  spec,
+  onAsk,
+}: {
+  spec: PlaygroundSpec;
+  onAsk?: (target: AskTarget, label: string) => void;
+}) {
   const defaults = useMemo(
     () =>
       Object.fromEntries(
@@ -130,14 +138,30 @@ export function Playground({ spec }: { spec: PlaygroundSpec }) {
             )}
           </div>
         ))}
-        <motion.p
+        <motion.div
           key={scenario.id}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="rounded-xl bg-violet-50 p-3 text-xs leading-5 text-violet-900"
         >
-          {scenario.explanation}
-        </motion.p>
+          <p>{scenario.explanation}</p>
+          {onAsk && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-2 h-8 px-2 text-xs text-violet-700 hover:bg-violet-100"
+              onClick={() =>
+                onAsk(
+                  { kind: "scenario", id: scenario.id },
+                  "Current playground scenario",
+                )
+              }
+            >
+              <MessageCircleQuestion className="size-3.5" />
+              Ask about this scenario
+            </Button>
+          )}
+        </motion.div>
       </aside>
 
       <div className="min-w-0 space-y-5">
