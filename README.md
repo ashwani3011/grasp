@@ -8,13 +8,15 @@ Each explainer follows a compact lesson arc: a concrete hook frames the develope
 
 ```text
 user input
-  → server-only OpenAI route
-  → structured JSON response
-  → Zod validation
-      ↳ invalid: send validation errors to the model once
+  → Builder: one server-only structured model call
+  → Inspector: deterministic Zod validation
+      ↳ invalid: Repairer receives validation feedback once
       ↳ invalid again: return a friendly error
   → hardened React primitive
+  → optional learner actions: Ask or Examiner (Interview mode)
 ```
+
+For live generations, “How this was made” reports the real model, total generation duration, final deterministic checks, archetype rationale, and whether the single repair path was actually used. Cached showcases and shared links have no pipeline metadata. Every displayed stage corresponds to real work; Grasp does not simulate agent chatter, timings, planning calls, or fact-check calls.
 
 - `lib/schema.ts` is the trust boundary for every model response.
 - `lib/openai.ts` implements exactly one validation-driven repair attempt.
@@ -89,9 +91,11 @@ components/
   AskPopover.tsx
   CodeProof.tsx
   InterviewMe.tsx
+  PipelineTrace.tsx
 lib/
   ai-request-guard.ts
   openai.ts
+  pipeline.ts
   rate-limit.ts
   schema.ts
   share.ts

@@ -353,3 +353,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Cycling through Architect, Inspector, or Repairer messages on a timer would imply events that may not have happened and timings the client cannot observe.
 - **Direction changes:** Used one truthful, persistent status instead of theatrical stage animation or artificial delays.
 - **Commit:** `feat: explain generation pipeline loading`
+
+## 2026-07-17 — Document the honest AI pipeline
+
+- **Asked:** Deliver the best end-to-end version of a visible staged pipeline without compromising the reliability-first product architecture.
+- **Implemented:** Reframed the README architecture around the real Builder → Inspector → conditional Repairer → renderer flow, documented live-only metadata and optional learner-triggered Ask/Examiner calls, and added the trace/parser files to the project map.
+- **Challenges / uncertainty:** “Multi-specialist” language can imply independent planning and verification calls that the application intentionally does not make.
+- **Direction changes:** Documented the absence of simulated agent chatter, invented timings, automatic critic calls, and planner latency as an explicit engineering property.
+- **Commit:** `docs: document honest ai pipeline`
