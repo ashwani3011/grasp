@@ -206,7 +206,7 @@ export function HomeExperience() {
             </div>
           </div>
           {loading ? (
-            <ExplainerSkeleton />
+            <ExplainerSkeleton status="Builder is generating JSON; Inspector validates it before render." />
           ) : error ? (
             <ErrorCard
               message={error}

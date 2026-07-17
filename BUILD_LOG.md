@@ -345,3 +345,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Archetype selection occurs inside the Builder call, not in a separate Architect call, and validation has no separately observable client timing.
 - **Direction changes:** Labels describe the actual single-call pipeline and named applied checks; omitted fabricated agent roles, fake timings, and a manually maintained invariant count.
 - **Commit:** `feat: show live pipeline trace`
+
+## 2026-07-17 — Explain real work during generation
+
+- **Asked:** Make generation feel staged and intentional without pretending the browser can observe server-internal phases before the response arrives.
+- **Implemented:** Added an accessible loading status stating that the Builder is generating JSON and the Inspector validates it before render, while retaining a stable skeleton and generic fallback for shared-route loading.
+- **Challenges / uncertainty:** Cycling through Architect, Inspector, or Repairer messages on a timer would imply events that may not have happened and timings the client cannot observe.
+- **Direction changes:** Used one truthful, persistent status instead of theatrical stage animation or artificial delays.
+- **Commit:** `feat: explain generation pipeline loading`
