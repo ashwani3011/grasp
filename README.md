@@ -2,6 +2,8 @@
 
 Grasp turns a developer concept, error message, or code snippet into a live, manipulable explanation. The model chooses between two hardened archetypes—`stepper` and `playground`—and returns data only. It never returns UI code.
 
+Each explainer follows a compact lesson arc: a concrete hook frames the developer pain, the interactive walkthrough makes the mechanism visible, an optional predict-then-reveal snippet proves it, and the takeaway anchors the idea. Learners can ask one contextual clarification from a step, chip, scenario, or seeded common question, then switch to Interview mode to test recall and application.
+
 ## Why the architecture is safe
 
 ```text
@@ -67,6 +69,7 @@ The same gates run in `.github/workflows/ci.yml` on pull requests and pushes to 
 | `/gallery`       | Eight verified offline explainers                                            |
 | `/e/[spec]`      | Validates and renders a URL-contained shared spec                            |
 | `/api/generate`  | Generates, validates, repairs once, and returns an explainer spec            |
+| `/api/ask`       | Answers one validated contextual follow-up about an explainer                |
 | `/api/interview` | Generates three questions or grades three answers                            |
 
 ## Project map
@@ -74,6 +77,7 @@ The same gates run in `.github/workflows/ci.yml` on pull requests and pushes to 
 ```text
 app/
   api/generate/route.ts
+  api/ask/route.ts
   api/interview/route.ts
   e/[spec]/page.tsx
   gallery/page.tsx
@@ -82,6 +86,8 @@ components/
   Stepper.tsx
   Playground.tsx
   ArchetypeBadge.tsx
+  AskPopover.tsx
+  CodeProof.tsx
   InterviewMe.tsx
 lib/
   ai-request-guard.ts

@@ -297,3 +297,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Independent popovers inside every animated primitive would duplicate state, risk clipping on mobile, and complicate the one-open-at-a-time requirement.
 - **Direction changes:** Used a single viewport-contained dialog/bottom-sheet surface owned by the explainer; triggers only select context and never mutate the shared spec.
 - **Commit:** `feat: add contextual ask interactions`
+
+## 2026-07-17 — Document the complete lesson arc
+
+- **Asked:** Deliver the connected learning-frame and Ask-the-explainer experience as a maintainable production feature.
+- **Implemented:** Documented the hook-to-interview lesson arc, the guarded `/api/ask` route, and the new Ask/code-proof components in the project map.
+- **Challenges / uncertainty:** Documentation must distinguish offline explainer rendering from contextual answers that require the live model service.
+- **Direction changes:** Kept the product narrative concise and architecture-focused instead of adding operational or feature scope beyond the implementation.
+- **Commit:** `docs: document contextual learning flow`
