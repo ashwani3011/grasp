@@ -4,9 +4,18 @@ import { z } from "zod";
 vi.mock("server-only", () => ({}));
 
 let validatedModelCall: typeof import("@/lib/openai").validatedModelCall;
+let explainerSystem: typeof import("@/lib/openai").explainerSystem;
 
 beforeAll(async () => {
-  ({ validatedModelCall } = await import("@/lib/openai"));
+  ({ validatedModelCall, explainerSystem } = await import("@/lib/openai"));
+});
+
+describe("explainer prompt", () => {
+  it("does not silently narrow family or types-of requests", () => {
+    expect(explainerSystem).toContain(
+      "cover the family and its important differences rather than selecting one member",
+    );
+  });
 });
 
 afterEach(() => vi.unstubAllEnvs());

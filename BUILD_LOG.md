@@ -305,3 +305,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Documentation must distinguish offline explainer rendering from contextual answers that require the live model service.
 - **Direction changes:** Kept the product narrative concise and architecture-focused instead of adding operational or feature scope beyond the implementation.
 - **Commit:** `docs: document contextual learning flow`
+
+## 2026-07-17 — Interpret ambiguous family requests
+
+- **Asked:** Prevent inputs such as “Types of var in JavaScript” from being silently narrowed to one member when learners usually want the broader family comparison.
+- **Implemented:** Added a general generation rule that expands family and “types of X” requests into the family’s important differences, with a prompt-contract regression test.
+- **Challenges / uncertainty:** The behavior must generalize beyond JavaScript declarations without introducing concept-specific rewriting or broadening already precise inputs.
+- **Direction changes:** Solved the interpretation class in the model contract rather than adding brittle keyword parsing in application code.
+- **Commit:** `fix: interpret ambiguous family requests`
