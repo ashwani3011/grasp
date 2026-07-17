@@ -12,6 +12,9 @@
 .env*
 !.env.example
 
+# throwaway quality-harness output
+/quality-run/
+
 # misc
 .DS_Store
 *.pem

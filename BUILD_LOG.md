@@ -225,3 +225,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The harness needs enough throughput for stochastic sampling, but the production limiter is a launch safeguard and must remain impossible to bypass through deployment configuration.
 - **Direction changes:** Kept all bypass and diagnostic behavior runtime-gated to local/non-production environments; no production limit was altered.
 - **Commit:** `test: support local live quality diagnostics`
+
+## 2026-07-17 — Add local live generation harness
+
+- **Asked:** Keep and improve the throwaway harness used locally to sample real model outputs and turn discovered quality problems into product fixes.
+- **Implemented:** Added 28 diverse generation cases, per-result JSON artifacts, a Markdown summary, Stepper and Playground heuristics, focused reruns, local-target enforcement, bounded concurrency, validated case selection, immediate result persistence, and compact validation diagnostics. Added a dedicated npm command and ignored generated run artifacts.
+- **Challenges / uncertainty:** Live generations are stochastic and billable, so the harness is intentionally local-only and remains outside CI; semantic correctness still requires human review after automated structural flags.
+- **Direction changes:** Explicitly separated comprehensive local quality runs from production rate-limit smoke testing; the harness cannot target a deployed host.
+- **Commit:** `test: add local live generation harness`

@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "quality:live": "node scripts/quality-harness.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
