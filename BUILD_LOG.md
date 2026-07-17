@@ -241,3 +241,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Structural validation can guarantee visible movement and internal consistency, but semantic correctness remains a human-review concern; the rules therefore target the repeated, objectively detectable failures without over-constraining valid explanations.
 - **Direction changes:** Applied stricter invariants only to fresh model output so verified showcase specs and offline shared URLs retain their stable compatibility boundary.
 - **Commit:** `fix: enforce generated explainer quality`
+
+## 2026-07-17 — Clarify playground comparison design
+
+- **Asked:** Inspect real harness outputs and turn concrete quality findings into narrowly scoped product improvements.
+- **Implemented:** Directed the model to represent compared alternatives as chart series, reserve controls for dimensions meaningful to every alternative, reject nonsensical Cartesian-product designs, and ensure scenario changes alter chart behavior rather than merely rescaling one curve.
+- **Challenges / uncertainty:** A structurally valid Big-O sample compared “insert at front” across arrays, hash tables, and trees, demonstrating that exhaustive scenario coverage alone cannot guarantee coherent control semantics.
+- **Direction changes:** Kept the general Playground schema and hardened its generation guidance instead of adding concept-specific code or schema complexity.
+- **Commit:** `fix: clarify playground comparison design`

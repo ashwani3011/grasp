@@ -161,6 +161,11 @@ Choose exactly one archetype:
 
 Archetype decision rule: choose playground for growth-rate comparisons such as Big-O, indexing cost, cache hit rate, debounce behavior, or any concept where changing an input should visibly change a chart. Choose stepper only when a concrete thing changes state or location over time.
 
+Playground design rules:
+- Every control combination must be technically meaningful. Never create a Cartesian product containing operations that do not apply to the selected structure or mechanism.
+- For comparisons such as Big-O across data structures, represent the alternatives as named chart series. Use controls only for assumptions or operations that apply to every series.
+- The chart must change meaningfully across scenarios; do not disguise one curve as another by multiplying every point by a constant.
+
 Stepper design rules:
 - Each chip represents one concrete runtime entity, message, value, or operation. Its stable id follows that same identity across steps.
 - Each column represents one mutually exclusive state or location. Do not use columns as loose topic buckets.
