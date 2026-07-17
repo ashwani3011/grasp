@@ -18,6 +18,7 @@ import {
   type InterviewSet,
   type Level,
 } from "@/lib/schema";
+import type { GenerationMeta } from "@/lib/pipeline";
 
 const MODEL = process.env.OPENAI_MODEL ?? "gpt-5.4-mini";
 
@@ -92,6 +93,16 @@ function parseJson<T>(
  * request containing the original response and compact validation feedback.
  */
 export async function validatedModelCall<T>({
+  ...options
+}: {
+  schema: z.ZodType<T>;
+  initialPrompt: string;
+  request: (prompt: string) => Promise<string>;
+}): Promise<T> {
+  return (await validatedModelCallWithMeta(options)).data;
+}
+
+export async function validatedModelCallWithMeta<T>({
   schema,
   initialPrompt,
   request,
@@ -99,10 +110,10 @@ export async function validatedModelCall<T>({
   schema: z.ZodType<T>;
   initialPrompt: string;
   request: (prompt: string) => Promise<string>;
-}): Promise<T> {
+}): Promise<{ data: T; repairUsed: boolean }> {
   const firstRaw = await request(initialPrompt);
   const first = parseJson(schema, firstRaw);
-  if (first.success) return first.data;
+  if (first.success) return { data: first.data, repairUsed: false };
 
   const issues = validationMessage(first.issues);
   const repairPrompt = [
@@ -121,7 +132,7 @@ export async function validatedModelCall<T>({
 
   const repairedRaw = await request(repairPrompt);
   const repaired = parseJson(schema, repairedRaw);
-  if (repaired.success) return repaired.data;
+  if (repaired.success) return { data: repaired.data, repairUsed: true };
   throw new GenerationError(
     "invalid_output",
     "The explainer could not be validated after one repair attempt.",
@@ -204,8 +215,16 @@ Content rules:
 - Do not invent a third archetype.`;
 
 export async function generateExplainer(concept: string, level: Level) {
+  return (await generateExplainerWithMeta(concept, level)).spec;
+}
+
+export async function generateExplainerWithMeta(
+  concept: string,
+  level: Level,
+): Promise<{ spec: ExplainerSpec; meta: GenerationMeta }> {
+  const startedAt = performance.now();
   const prompt = `Create an explorable explanation for this input:\n\n${concept}\n\nAudience level: ${level}.`;
-  const generated = await validatedModelCall({
+  const generated = await validatedModelCallWithMeta({
     schema: liveGeneratedExplainerSchema,
     initialPrompt: prompt,
     request: (input) =>
@@ -216,7 +235,15 @@ export async function generateExplainer(concept: string, level: Level) {
         input,
       ),
   });
-  return explainerSpecSchema.parse(generated);
+  return {
+    spec: explainerSpecSchema.parse(generated.data),
+    meta: {
+      model: MODEL,
+      generateMs: Math.round(performance.now() - startedAt),
+      repairUsed: generated.repairUsed,
+      validation: "zod",
+    },
+  };
 }
 
 const interviewSystem = `You are a concise, rigorous technical interviewer.

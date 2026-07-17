@@ -329,3 +329,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The first output pair failed the motion invariant; after correcting motion, a schema-valid rerun still interpreted “types” as values held by var, proving structural success did not guarantee the intended family.
 - **Direction changes:** Preserved the core motion requirement and added a targeted disambiguation for this frequent developer-learning query instead of relaxing validation or rewriting user input in application code.
 - **Commit:** `fix: animate qualitative family comparisons`
+
+## 2026-07-17 — Report real generation pipeline metadata
+
+- **Asked:** Make Grasp's AI pipeline visible without adding planner/critic calls, weakening rate limits, or fabricating specialist activity.
+- **Implemented:** Added an opt-in repair-aware validation wrapper, measured actual generation duration, and returned model/repair/validation metadata in response headers while preserving the explainer JSON body exactly. Added strict header parsing and route/helper regression tests.
+- **Challenges / uncertainty:** Wrapping the API response in `{ spec, meta }` would break existing clients and cause strict share validation to reject the extra field.
+- **Direction changes:** Used same-origin response headers for live-only metadata and left Interview, Ask, cached showcases, shared URLs, and the quality harness on their existing contracts.
+- **Commit:** `feat: report generation pipeline metadata`

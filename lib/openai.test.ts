@@ -5,9 +5,11 @@ vi.mock("server-only", () => ({}));
 
 let validatedModelCall: typeof import("@/lib/openai").validatedModelCall;
 let explainerSystem: typeof import("@/lib/openai").explainerSystem;
+let validatedModelCallWithMeta: typeof import("@/lib/openai").validatedModelCallWithMeta;
 
 beforeAll(async () => {
-  ({ validatedModelCall, explainerSystem } = await import("@/lib/openai"));
+  ({ validatedModelCall, validatedModelCallWithMeta, explainerSystem } =
+    await import("@/lib/openai"));
 });
 
 describe("explainer prompt", () => {
@@ -47,6 +49,29 @@ describe("validatedModelCall", () => {
     expect(request.mock.calls[1][0]).toContain("ORIGINAL REQUEST:\nteach");
     expect(request.mock.calls[1][0]).toContain("VALIDATION ERRORS");
     expect(request.mock.calls[1][0]).toContain("answer");
+  });
+
+  it("reports whether validation repair was actually used", async () => {
+    const firstPass = vi.fn().mockResolvedValue('{"answer":"valid"}');
+    await expect(
+      validatedModelCallWithMeta({
+        schema,
+        initialPrompt: "teach",
+        request: firstPass,
+      }),
+    ).resolves.toEqual({ data: { answer: "valid" }, repairUsed: false });
+
+    const repaired = vi
+      .fn()
+      .mockResolvedValueOnce('{"answer":"x"}')
+      .mockResolvedValueOnce('{"answer":"valid"}');
+    await expect(
+      validatedModelCallWithMeta({
+        schema,
+        initialPrompt: "teach",
+        request: repaired,
+      }),
+    ).resolves.toEqual({ data: { answer: "valid" }, repairUsed: true });
   });
 
   it("stops after one failed repair", async () => {

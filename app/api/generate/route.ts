@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { beginAiRequest } from "@/lib/ai-request-guard";
-import { generateExplainer, publicGenerationError } from "@/lib/openai";
+import { generateExplainerWithMeta, publicGenerationError } from "@/lib/openai";
+import { generationHeaders } from "@/lib/pipeline";
 import { levelSchema } from "@/lib/schema";
 
 export const runtime = "nodejs";
@@ -37,10 +38,22 @@ export async function POST(request: Request) {
       );
 
     try {
-      return NextResponse.json(
-        await generateExplainer(parsed.data.concept, parsed.data.level),
-        { headers: admission.headers },
+      const generated = await generateExplainerWithMeta(
+        parsed.data.concept,
+        parsed.data.level,
       );
+      const headers = new Headers(admission.headers);
+      headers.set(generationHeaders.model, generated.meta.model);
+      headers.set(
+        generationHeaders.generateMs,
+        String(generated.meta.generateMs),
+      );
+      headers.set(
+        generationHeaders.repairUsed,
+        String(generated.meta.repairUsed),
+      );
+      headers.set(generationHeaders.validation, generated.meta.validation);
+      return NextResponse.json(generated.spec, { headers });
     } catch (cause) {
       const error = publicGenerationError(cause);
       const payload: Record<string, unknown> = { error: error.message };
