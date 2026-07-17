@@ -11,6 +11,14 @@ const id = z.string().regex(/^[a-z0-9][a-z0-9_-]{0,47}$/);
 const shortText = z.string().trim().min(1).max(160);
 const bodyText = z.string().trim().min(1).max(700);
 
+const learningExampleSchema = z
+  .object({
+    code: z.string().trim().min(1).max(500),
+    output: z.string().trim().min(1).max(160),
+    note: z.string().trim().min(1).max(200),
+  })
+  .strict();
+
 const baseSpec = z
   .object({
     version: z.literal(1),
@@ -20,6 +28,12 @@ const baseSpec = z
     summary: z.string().trim().min(10).max(320),
     whyThisArchetype: z.string().trim().min(8).max(220),
     keyTakeaway: z.string().trim().min(8).max(280),
+    hook: z.string().trim().min(1).max(180).nullable().default(null),
+    example: learningExampleSchema.nullable().default(null),
+    commonQuestions: z
+      .array(z.string().trim().min(1).max(90))
+      .max(3)
+      .default([]),
   })
   .strict();
 
@@ -521,6 +535,14 @@ export const generatedExplainerSchema = generatedExplainerWireSchema
  */
 export const liveGeneratedExplainerSchema =
   generatedExplainerSchema.superRefine((spec, ctx) => {
+    if (spec.commonQuestions.length !== 3)
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "A fresh explainer must include exactly three natural commonQuestions.",
+        path: ["spec", "commonQuestions"],
+      });
+
     if (spec.archetype !== "stepper") return;
     const lastColumn = new Map<string, string>();
     const usedChips = new Set<string>();
@@ -560,6 +582,37 @@ export type ExplainerSpec = z.output<typeof explainerSpecSchema>;
 export type StepperSpecInput = z.input<typeof stepperSpecSchema>;
 export type PlaygroundSpecInput = z.input<typeof playgroundSpecSchema>;
 export type ExplainerSpecInput = z.input<typeof explainerSpecSchema>;
+
+export const askTargetSchema = z
+  .object({
+    kind: z.enum(["step", "chip", "scenario", "general"]),
+    id: id.nullable().default(null),
+  })
+  .strict()
+  .superRefine((target, ctx) => {
+    if (target.kind === "general" && target.id !== null)
+      ctx.addIssue({
+        code: "custom",
+        message: "A general question must not include a target id",
+        path: ["id"],
+      });
+    if (target.kind !== "general" && target.id === null)
+      ctx.addIssue({
+        code: "custom",
+        message: "A contextual question requires a target id",
+        path: ["id"],
+      });
+  });
+
+export const askAnswerSchema = z
+  .object({
+    answer: z.string().trim().min(1).max(450),
+    followUp: z.string().trim().max(120).nullable().default(null),
+  })
+  .strict();
+
+export type AskTarget = z.infer<typeof askTargetSchema>;
+export type AskAnswer = z.infer<typeof askAnswerSchema>;
 
 export const interviewQuestionSchema = z
   .object({

@@ -249,3 +249,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** A structurally valid Big-O sample compared “insert at front” across arrays, hash tables, and trees, demonstrating that exhaustive scenario coverage alone cannot guarantee coherent control semantics.
 - **Direction changes:** Kept the general Playground schema and hardened its generation guidance instead of adding concept-specific code or schema complexity.
 - **Commit:** `fix: clarify playground comparison design`
+
+## 2026-07-17 — Add lesson and contextual-answer schemas
+
+- **Asked:** Build the connected learning-frame and Ask-the-explainer features end to end without weakening Grasp's strict JSON architecture or offline compatibility.
+- **Implemented:** Added bounded hook, code-proof, and common-question fields with legacy defaults; required fresh generations to seed exactly three questions; and added strict Ask target/answer schemas with contextual ID invariants and regression coverage.
+- **Challenges / uncertainty:** New learning fields must be required enough to improve live lessons without invalidating existing cached payloads or shared URLs created before the feature.
+- **Direction changes:** Kept the renderer/share schema backward-compatible while applying the three-question requirement only at the live-generation boundary.
+- **Commit:** `feat: add learning frame schemas`

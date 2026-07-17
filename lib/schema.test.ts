@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { zodTextFormat } from "openai/helpers/zod";
 import {
+  askAnswerSchema,
+  askTargetSchema,
   explainerSpecSchema,
   generatedExplainerSchema,
   generatedExplainerWireSchema,
@@ -57,16 +59,66 @@ describe("explainer schemas", () => {
       expect(explainerSpecSchema.safeParse(spec).success).toBe(true);
   });
 
+  it("defaults missing learning-frame fields for legacy shared specs", () => {
+    const legacy = structuredClone(showcaseSpecs[0]) as Record<string, unknown>;
+    delete legacy.hook;
+    delete legacy.example;
+    delete legacy.commonQuestions;
+
+    const parsed = explainerSpecSchema.parse(legacy);
+    expect(parsed.hook).toBeNull();
+    expect(parsed.example).toBeNull();
+    expect(parsed.commonQuestions).toEqual([]);
+  });
+
+  it("accepts valid learning-frame fields and rejects oversized content", () => {
+    const valid = {
+      ...showcaseSpecs[0],
+      hook: "This is why a timer can run after a resolved promise.",
+      example: {
+        code: "console.log('A')",
+        output: "A",
+        note: "The statement logs synchronously.",
+      },
+      commonQuestions: ["Why does this happen?"],
+    };
+    expect(explainerSpecSchema.safeParse(valid).success).toBe(true);
+    expect(
+      explainerSpecSchema.safeParse({ ...valid, hook: "x".repeat(181) })
+        .success,
+    ).toBe(false);
+    expect(
+      explainerSpecSchema.safeParse({
+        ...valid,
+        example: { ...valid.example, code: "x".repeat(501) },
+      }).success,
+    ).toBe(false);
+    expect(
+      explainerSpecSchema.safeParse({
+        ...valid,
+        commonQuestions: Array.from({ length: 4 }, () => "Question?"),
+      }).success,
+    ).toBe(false);
+  });
+
   it("requires a live-generated stepper to animate a stable chip", () => {
     const source = showcaseSpecs.find((spec) => spec.archetype === "stepper");
     if (!source || source.archetype !== "stepper")
       throw new Error("Expected a stepper showcase");
 
+    const liveSource = {
+      ...source,
+      commonQuestions: [
+        "What moves between the columns?",
+        "Why does the ordering matter?",
+        "What happens on the final step?",
+      ],
+    };
     expect(
-      liveGeneratedExplainerSchema.safeParse({ spec: source }).success,
+      liveGeneratedExplainerSchema.safeParse({ spec: liveSource }).success,
     ).toBe(true);
 
-    const staticStepper = structuredClone(source);
+    const staticStepper = structuredClone(liveSource);
     const allChipIds = staticStepper.chips.map((chip) => chip.id);
     staticStepper.steps = staticStepper.steps.map((step) => ({
       ...step,
@@ -172,5 +224,43 @@ describe("explainer schemas", () => {
       );
       expect(messages).toContain("Unknown series value: unknown");
     }
+  });
+});
+
+describe("ask schemas", () => {
+  it("enforces target id semantics", () => {
+    expect(
+      askTargetSchema.safeParse({ kind: "general", id: null }).success,
+    ).toBe(true);
+    expect(
+      askTargetSchema.safeParse({ kind: "chip", id: "callback" }).success,
+    ).toBe(true);
+    expect(
+      askTargetSchema.safeParse({ kind: "general", id: "callback" }).success,
+    ).toBe(false);
+    expect(askTargetSchema.safeParse({ kind: "step", id: null }).success).toBe(
+      false,
+    );
+  });
+
+  it("bounds model-generated ask answers", () => {
+    expect(
+      askAnswerSchema.safeParse({
+        answer: "Because it is queued.",
+        followUp: null,
+      }).success,
+    ).toBe(true);
+    expect(
+      askAnswerSchema.safeParse({
+        answer: "x".repeat(451),
+        followUp: null,
+      }).success,
+    ).toBe(false);
+    expect(
+      askAnswerSchema.safeParse({
+        answer: "Short answer.",
+        followUp: "x".repeat(121),
+      }).success,
+    ).toBe(false);
   });
 });
