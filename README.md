@@ -2,7 +2,7 @@
 
 Turn any developer concept, error message, or code snippet into an interactive explainer you can poke, step through, and share.
 
-**[Open Grasp](https://grasp-flame.vercel.app)** · **[Explore the verified gallery](https://grasp-flame.vercel.app/gallery)**
+**[Open Grasp](https://grasp-flame.vercel.app)** · **[Watch the 2:26 demo](https://drive.google.com/file/d/1bCx5vCYUxy2cPU_u7XlmHSReDH-WzfPS/view?usp=sharing)** · **[View the deck](https://docs.google.com/presentation/d/1kAELp3qi3BsDTb_PlvOF6yYZ4uJ3srCZHjkB5iZfyV4/edit?usp=sharing)** · **[Explore the gallery](https://grasp-flame.vercel.app/gallery)**
 
 [![Grasp homepage showing the concept input and four learning levels](./docs/images/home.png)](https://grasp-flame.vercel.app)
 
@@ -20,6 +20,14 @@ Explorable explanations make difficult concepts easier to understand than anothe
 - Eight hand-verified examples that load instantly without an AI request.
 
 ## See it in action
+
+<p align="center">
+  <a href="https://drive.google.com/file/d/1bCx5vCYUxy2cPU_u7XlmHSReDH-WzfPS/view?usp=sharing">
+    <img src="./docs/images/grasp-home.jpg" alt="Watch the Grasp product demo" width="720">
+  </a>
+</p>
+
+<p align="center"><strong><a href="https://drive.google.com/file/d/1bCx5vCYUxy2cPU_u7XlmHSReDH-WzfPS/view?usp=sharing">Watch the complete product demo →</a></strong></p>
 
 ### Explore the generated explanation
 
