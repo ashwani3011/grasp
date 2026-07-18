@@ -15,6 +15,11 @@
 # throwaway quality-harness output
 /quality-run/
 
+# demo video workspace (keep code, not deps/renders/assets)
+/demo-video/node_modules/
+/demo-video/out/
+/demo-video/public/assets/
+
 # misc
 .DS_Store
 *.pem
