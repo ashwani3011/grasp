@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -47,6 +47,13 @@ export function HomeExperience() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needsClarification, setNeedsClarification] = useState(false);
+  const [scrollRequest, setScrollRequest] = useState(0);
+
+  useEffect(() => {
+    if (scrollRequest === 0) return;
+    const frame = requestAnimationFrame(scrollToResult);
+    return () => cancelAnimationFrame(frame);
+  }, [loading, scrollRequest]);
 
   async function generate(nextConcept: string, nextLevel: Level) {
     const trimmed = nextConcept.trim();
@@ -56,7 +63,7 @@ export function HomeExperience() {
     setNeedsClarification(false);
     setGenerationMeta(null);
     setConcept(trimmed);
-    scrollToResult();
+    setScrollRequest((request) => request + 1);
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -201,7 +208,7 @@ export function HomeExperience() {
 
       <section
         id="result"
-        className="scroll-mt-6 border-t border-slate-200/70 bg-white/45 py-12"
+        className={`scroll-mt-6 border-t border-slate-200/70 bg-white/45 py-12 ${loading ? "min-h-[100svh]" : ""}`}
       >
         <div className="mx-auto max-w-7xl px-5 sm:px-8">
           <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">

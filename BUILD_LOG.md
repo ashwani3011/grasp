@@ -385,3 +385,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** Waiting for completion would leave mobile users above the fold during the slowest part of the flow, while scrolling to a conditionally mounted target could race React rendering.
 - **Direction changes:** Scrolled immediately to the always-mounted result container and made the browser enhancement optional for test and older-environment compatibility.
 - **Commit:** `fix: reveal generation progress after submit`
+
+## 2026-07-18 15:32 IST — Stabilize generation result scrolling
+
+- **Asked:** Recheck the automatic result scroll because submission still appeared to do nothing and left learners unaware that output was waiting below.
+- **Implemented:** Moved scrolling into a post-render effect that runs for both loading and completion, and gives the loading result a viewport-height minimum so the browser has enough document space to align it visibly.
+- **Challenges / uncertainty:** The original scroll call executed before React replaced the tall explainer with the short skeleton. The resulting page-height collapse clamped the browser near the bottom and left the result 528 px below the viewport top despite the scroll event firing.
+- **Direction changes:** Verified geometry in a real browser instead of relying on the event-count unit test. The loading result now lands 24 px from the viewport top, and the test requires separate post-render scrolls for loading and final content.
+- **Commit:** `fix: stabilize generation result scrolling`

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { HomeExperience } from "@/components/HomeExperience";
@@ -38,10 +38,13 @@ describe("HomeExperience live pipeline", () => {
     );
     await user.click(screen.getByRole("button", { name: "Build explainer" }));
 
-    expect(scrollIntoView).toHaveBeenCalledWith({
-      behavior: "smooth",
-      block: "start",
-    });
+    await waitFor(() =>
+      expect(scrollIntoView).toHaveBeenCalledWith({
+        behavior: "smooth",
+        block: "start",
+      }),
+    );
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
     expect(screen.getByText(/Builder is generating JSON/)).toBeInTheDocument();
 
     resolveRequest?.(
@@ -51,6 +54,7 @@ describe("HomeExperience live pipeline", () => {
       }),
     );
     expect(await screen.findByText(generated.title)).toBeInTheDocument();
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(2));
   });
 
   it("shows trace metadata only after a live generation returns it", async () => {
