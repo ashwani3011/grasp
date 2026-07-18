@@ -377,3 +377,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** A deterministic preflight would misclassify concise programming languages, acronyms, non-English questions, code, and error fragments. The clarification branch also had to remain incapable of injecting learner-facing model prose.
 - **Direction changes:** Classified within the existing structured generation call, kept clarification copy application-owned, and retained the full Zod trust boundary and one-repair policy. A targeted real-model run correctly clarified `asdfkjasdf`, `hello`, and a lone emoji while generating explainers for `C`, `Go`, and `JWT`.
 - **Commit:** `feat: clarify unintelligible generation inputs`
+
+## 2026-07-18 12:41 IST — Reveal generation progress after submission
+
+- **Asked:** Make Build explainer automatically move the learner to the generated playground or walkthrough.
+- **Implemented:** Generation now smoothly scrolls to the persistent result section as soon as the request starts, making the stable loading skeleton visible before the explainer, clarification, or error arrives. Instant showcase selection uses the same safe helper.
+- **Challenges / uncertainty:** Waiting for completion would leave mobile users above the fold during the slowest part of the flow, while scrolling to a conditionally mounted target could race React rendering.
+- **Direction changes:** Scrolled immediately to the always-mounted result container and made the browser enhancement optional for test and older-environment compatibility.
+- **Commit:** `fix: reveal generation progress after submit`

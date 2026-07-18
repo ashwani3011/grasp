@@ -11,6 +11,48 @@ afterEach(() => {
 });
 
 describe("HomeExperience live pipeline", () => {
+  it("scrolls to the result as soon as generation starts", async () => {
+    const user = userEvent.setup();
+    const generated = showcaseBySlug.closures;
+    let resolveRequest: ((response: Response) => void) | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockReturnValue(
+        new Promise<Response>((resolve) => {
+          resolveRequest = resolve;
+        }),
+      ),
+    );
+    render(<HomeExperience />);
+    const result = document.getElementById("result");
+    if (!result) throw new Error("Expected the result section");
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(result, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+
+    await user.type(
+      screen.getByLabelText("Concept, code, or error message"),
+      "JavaScript closures",
+    );
+    await user.click(screen.getByRole("button", { name: "Build explainer" }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+    expect(screen.getByText(/Builder is generating JSON/)).toBeInTheDocument();
+
+    resolveRequest?.(
+      new Response(JSON.stringify(generated), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    expect(await screen.findByText(generated.title)).toBeInTheDocument();
+  });
+
   it("shows trace metadata only after a live generation returns it", async () => {
     const user = userEvent.setup();
     const generated = showcaseBySlug.closures;

@@ -28,6 +28,13 @@ const levels: { value: Level; label: string }[] = [
   { value: "deep_dive", label: "Deep dive" },
 ];
 
+function scrollToResult() {
+  document.getElementById("result")?.scrollIntoView?.({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
 export function HomeExperience() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState("");
@@ -49,6 +56,7 @@ export function HomeExperience() {
     setNeedsClarification(false);
     setGenerationMeta(null);
     setConcept(trimmed);
+    scrollToResult();
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -90,9 +98,7 @@ export function HomeExperience() {
     setGenerationMeta(null);
     setError(null);
     setNeedsClarification(false);
-    document
-      .getElementById("result")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToResult();
   }
 
   async function changeLevel(nextLevel: Level) {
