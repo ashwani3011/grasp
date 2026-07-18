@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -19,6 +19,7 @@ import { InterviewMe } from "@/components/InterviewMe";
 import { PipelineTrace } from "@/components/PipelineTrace";
 import { ShareButton } from "@/components/ShareButton";
 import { Button } from "@/components/ui/button";
+import { ClarificationCard } from "@/components/ClarificationCard";
 
 const levels: { value: Level; label: string }[] = [
   { value: "beginner", label: "Beginner" },
@@ -28,6 +29,7 @@ const levels: { value: Level; label: string }[] = [
 ];
 
 export function HomeExperience() {
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState("");
   const [concept, setConcept] = useState(showcaseBySlug["event-loop"].concept);
   const [level, setLevel] = useState<Level>("student");
@@ -37,12 +39,14 @@ export function HomeExperience() {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsClarification, setNeedsClarification] = useState(false);
 
   async function generate(nextConcept: string, nextLevel: Level) {
     const trimmed = nextConcept.trim();
     if (!trimmed) return;
     setLoading(true);
     setError(null);
+    setNeedsClarification(false);
     setGenerationMeta(null);
     setConcept(trimmed);
     try {
@@ -56,6 +60,15 @@ export function HomeExperience() {
         throw new Error(
           payload.error ?? "Generation is temporarily unavailable.",
         );
+      if (
+        typeof payload === "object" &&
+        payload !== null &&
+        "kind" in payload &&
+        payload.kind === "clarification"
+      ) {
+        setNeedsClarification(true);
+        return;
+      }
       setSpec(payload);
       setGenerationMeta(readGenerationMeta(response.headers));
     } catch (cause) {
@@ -76,6 +89,7 @@ export function HomeExperience() {
     setSpec(nextSpec);
     setGenerationMeta(null);
     setError(null);
+    setNeedsClarification(false);
     document
       .getElementById("result")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -128,6 +142,7 @@ export function HomeExperience() {
           className="mx-auto mt-8 max-w-3xl rounded-3xl border border-slate-200 bg-white p-2 shadow-[0_28px_80px_-30px_rgba(76,29,149,.35)]"
         >
           <textarea
+            ref={inputRef}
             value={input}
             onChange={(event) => setInput(event.target.value)}
             maxLength={6000}
@@ -189,21 +204,25 @@ export function HomeExperience() {
                 Your explainer
               </div>
               <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-950">
-                See the system, not just the definition.
+                {needsClarification
+                  ? "Give Grasp a clear subject to explore."
+                  : "See the system, not just the definition."}
               </h2>
             </div>
-            <div className="flex gap-1 rounded-xl border border-slate-200 bg-white p-1">
-              {levels.map((item) => (
-                <button
-                  key={item.value}
-                  disabled={loading}
-                  onClick={() => void changeLevel(item.value)}
-                  className={`rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${level === item.value ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-50"}`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+            {!needsClarification && (
+              <div className="flex gap-1 rounded-xl border border-slate-200 bg-white p-1">
+                {levels.map((item) => (
+                  <button
+                    key={item.value}
+                    disabled={loading}
+                    onClick={() => void changeLevel(item.value)}
+                    className={`rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${level === item.value ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           {loading ? (
             <ExplainerSkeleton status="Builder is generating JSON; Inspector validates it before render." />
@@ -218,6 +237,16 @@ export function HomeExperience() {
                   Try again <ArrowRight className="size-4" />
                 </Button>
               }
+            />
+          ) : needsClarification ? (
+            <ClarificationCard
+              onRefine={() => {
+                inputRef.current?.scrollIntoView?.({
+                  behavior: "smooth",
+                  block: "center",
+                });
+                inputRef.current?.focus({ preventScroll: true });
+              }}
             />
           ) : (
             <>

@@ -57,7 +57,12 @@ export async function POST(request: Request) {
         String(generated.meta.movementDegraded),
       );
       headers.set(generationHeaders.validation, generated.meta.validation);
-      return NextResponse.json(generated.spec, { headers });
+      return NextResponse.json(
+        generated.kind === "explainer"
+          ? generated.spec
+          : { kind: "clarification" },
+        { headers },
+      );
     } catch (cause) {
       const error = publicGenerationError(cause);
       const payload: Record<string, unknown> = { error: error.message };

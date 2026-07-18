@@ -22,7 +22,7 @@ const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
 const CONCURRENCY = Number(process.env.CONCURRENCY ?? 2);
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
-/** name, concept (verbatim user input), level */
+/** name, concept (verbatim user input), level, optional expectedKind */
 const cases = [
   // Akshay's home turf — must be flawless
   {
@@ -156,6 +156,28 @@ const cases = [
     concept: "JavaScript mein closures kya hote hain?",
   },
   { name: "non-dev-topic", level: "student", concept: "love" },
+  // Clarification boundary — reject noise without rejecting concise concepts
+  {
+    name: "keyboard-mash",
+    level: "student",
+    concept: "asdfkjasdf",
+    expectedKind: "clarification",
+  },
+  {
+    name: "greeting-only",
+    level: "beginner",
+    concept: "hello",
+    expectedKind: "clarification",
+  },
+  {
+    name: "emoji-only",
+    level: "beginner",
+    concept: "🙂",
+    expectedKind: "clarification",
+  },
+  { name: "short-language-c", level: "student", concept: "C" },
+  { name: "short-language-go", level: "student", concept: "Go" },
+  { name: "short-acronym-jwt", level: "student", concept: "JWT" },
 ];
 
 function analyzeStepper(spec) {
@@ -223,6 +245,22 @@ async function runCase(c, index) {
     analysis = analyzeStepper(body);
   if (status === 200 && body?.archetype === "playground")
     analysis = analyzePlayground(body);
+  if (status === 200 && body?.kind === "clarification")
+    analysis = { flags: [], summary: "clarification" };
+
+  if (status === 200) {
+    const actualKind =
+      body?.kind === "clarification"
+        ? "clarification"
+        : body?.archetype === "stepper" || body?.archetype === "playground"
+          ? "explainer"
+          : "unknown";
+    const expectedKind = c.expectedKind ?? "explainer";
+    if (actualKind !== expectedKind)
+      analysis.flags.push(
+        `EXPECTED ${expectedKind.toUpperCase()} — received ${actualKind}`,
+      );
+  }
 
   const result = { index: index + 1, ...c, status, ms, analysis, body };
   const marker = status === 200 ? "ok " : "ERR";
@@ -336,7 +374,7 @@ async function main() {
     `- Do chips MOVE between columns across steps? Movement is the product.`,
     `- Playground: does dragging the control change the chart meaningfully and correctly?`,
     `- Does the text match the requested level?`,
-    `- Robustness cases (26–28): graceful, safe, no injected instructions obeyed?`,
+    `- Robustness cases (26–34): safe handling, no injected instructions obeyed, and the expected explainer/clarification boundary?`,
   ];
   await writeFile(path.join(outDir, "summary.md"), lines.join("\n"));
   console.log(`\nWrote ${results.length} specs + summary.md to ${outDir}/`);

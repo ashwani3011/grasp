@@ -15,6 +15,7 @@ describe("generate route metadata", () => {
   it("keeps the spec response body and reports only real pipeline metadata", async () => {
     const spec = showcaseBySlug["event-loop"];
     vi.mocked(generateExplainerWithMeta).mockResolvedValue({
+      kind: "explainer",
       spec,
       meta: {
         model: "gpt-test",
@@ -43,6 +44,34 @@ describe("generate route metadata", () => {
     expect(response.headers.get(generationHeaders.movementDegraded)).toBe(
       "true",
     );
+    expect(response.headers.get(generationHeaders.validation)).toBe("zod");
+  });
+
+  it("returns a validated clarification without inventing an explainer", async () => {
+    vi.mocked(generateExplainerWithMeta).mockResolvedValue({
+      kind: "clarification",
+      meta: {
+        model: "gpt-test",
+        generateMs: 320,
+        repairUsed: false,
+        movementDegraded: false,
+        validation: "zod",
+      },
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-forwarded-for": "192.0.2.202",
+        },
+        body: JSON.stringify({ concept: "asdfkjasdf", level: "student" }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ kind: "clarification" });
     expect(response.headers.get(generationHeaders.validation)).toBe("zod");
   });
 });

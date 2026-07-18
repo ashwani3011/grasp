@@ -6,6 +6,8 @@ import {
   explainerSpecSchema,
   generatedExplainerSchema,
   generatedExplainerWireSchema,
+  generatedOutcomeSchema,
+  generatedOutcomeWireSchema,
   interviewAssessmentSchema,
   interviewSetSchema,
   liveGeneratedExplainerSchema,
@@ -18,6 +20,9 @@ describe("explainer schemas", () => {
       zodTextFormat(generatedExplainerWireSchema, "grasp_explainer"),
     ).not.toThrow();
     expect(() =>
+      zodTextFormat(generatedOutcomeWireSchema, "grasp_generation_outcome"),
+    ).not.toThrow();
+    expect(() =>
       zodTextFormat(interviewSetSchema, "grasp_interview"),
     ).not.toThrow();
     expect(() =>
@@ -26,6 +31,26 @@ describe("explainer schemas", () => {
     expect(() =>
       zodTextFormat(askAnswerSchema, "grasp_ask_answer"),
     ).not.toThrow();
+  });
+
+  it("accepts only the fixed clarification outcome", () => {
+    expect(
+      generatedOutcomeSchema.parse({ result: { kind: "clarification" } }),
+    ).toEqual({ kind: "clarification" });
+    expect(
+      generatedOutcomeSchema.safeParse({
+        result: { kind: "clarification", message: "invented copy" },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates an explainer outcome through the existing trust boundary", () => {
+    const source = showcaseSpecs[0];
+    expect(
+      generatedOutcomeSchema.parse({
+        result: { kind: "explainer", spec: source },
+      }),
+    ).toEqual({ kind: "explainer", spec: source });
   });
 
   it("normalizes generated playground arrays into validated renderer maps", () => {

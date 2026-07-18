@@ -77,9 +77,9 @@ Live explainers include a collapsible **How this was made** trace. Every display
 
 ## Tested like a product
 
-[`scripts/quality-harness.mjs`](./scripts/quality-harness.mjs) runs 28 live-generation cases covering JavaScript internals, React and backend concepts, error pastes, code snippets, prompt injection, Hindi input, vague prompts, and a non-developer topic. It saves every response for review and automatically flags motionless steppers, unused chips, playgrounds with dead controls, and duplicate scenario explanations.
+[`scripts/quality-harness.mjs`](./scripts/quality-harness.mjs) runs 34 live-generation cases covering JavaScript internals, React and backend concepts, error pastes, code snippets, prompt injection, Hindi input, vague prompts, non-developer topics, keyboard mash, and valid one-word technical subjects. It saves every response for review and automatically flags motionless steppers, unused chips, playgrounds with dead controls, duplicate scenario explanations, and incorrect explainer-versus-clarification outcomes.
 
-The latest full local run produced **27/28 schema-valid specs with a 7.5s p50**. It also flagged five motionless steppers and one playground whose control did not change its chart. Those are interaction-quality signals, not hidden successes: Grasp can safely render a motionless result after one repair, but incomplete scenario coverage, invalid references, unused chips, and other structural failures return a friendly retry instead of questionable data.
+The latest full baseline, before the six clarification-boundary cases were added, produced **27/28 schema-valid specs with a 7.5s p50**. It also flagged five motionless steppers and one playground whose control did not change its chart. Those are interaction-quality signals, not hidden successes: Grasp can safely render a motionless result after one repair, but incomplete scenario coverage, invalid references, unused chips, and other structural failures return a friendly retry instead of questionable data.
 
 ### Honest limitations
 

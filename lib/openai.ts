@@ -6,14 +6,15 @@ import type { z } from "zod";
 import {
   askAnswerSchema,
   askTargetSchema,
+  generatedOutcomeSchema,
+  generatedOutcomeWireSchema,
   explainerSpecSchema,
-  generatedExplainerSchema,
-  generatedExplainerWireSchema,
   interviewAssessmentSchema,
   interviewSetSchema,
-  liveGeneratedExplainerSchema,
+  liveGeneratedOutcomeSchema,
   type AskAnswer,
   type AskTarget,
+  type ClarificationOutcome,
   type ExplainerSpec,
   type InterviewAssessment,
   type InterviewSet,
@@ -181,6 +182,8 @@ async function structuredRequest<T>(
 export const explainerSystem = `You convert a developer concept, error message, or code snippet into an interactive explorable for Grasp.
 Return only one valid JSON object matching the supplied schema. Return no markdown, backticks, commentary, or content outside that object. Never return React, HTML, CSS, or JavaScript to execute.
 
+First decide whether the input identifies a meaningful subject that can be explained. Return result.kind "clarification" only when it has no discernible subject, such as keyboard mash, a greeting with no question, or an isolated symbol or emoji with no context. Do not reject an input because it is outside software development: Grasp accepts any meaningful concept. Short programming-language names and technical acronyms such as C, R, Go, SQL, and JWT are valid subjects. Code snippets, error fragments, questions in any language, and unfamiliar but meaningful terms are also valid. When the subject is meaningful, return result.kind "explainer" and the complete spec.
+
 If the input names a family or asks for “types of X,” cover the family and its important differences rather than selecting one member. Resolve common educational ambiguity toward the standard comparison: in JavaScript, “types of var” or “types of variable declarations” means compare var, let, and const unless the input explicitly asks about data or value types. For a qualitative family comparison, use a stepper only when the members can move through shared lifecycle or state columns; the members are chips, never columns.
 
 Choose exactly one archetype:
@@ -225,36 +228,47 @@ Content rules:
 - Do not invent a third archetype.`;
 
 export async function generateExplainer(concept: string, level: Level) {
-  return (await generateExplainerWithMeta(concept, level)).spec;
+  const generated = await generateExplainerWithMeta(concept, level);
+  return generated.kind === "explainer"
+    ? generated.spec
+    : ({ kind: "clarification" } satisfies ClarificationOutcome);
 }
+
+export type GenerationResult =
+  | { kind: "explainer"; spec: ExplainerSpec; meta: GenerationMeta }
+  | { kind: "clarification"; meta: GenerationMeta };
 
 export async function generateExplainerWithMeta(
   concept: string,
   level: Level,
-): Promise<{ spec: ExplainerSpec; meta: GenerationMeta }> {
+): Promise<GenerationResult> {
   const startedAt = performance.now();
   const prompt = `Create an explorable explanation for this input:\n\n${concept}\n\nAudience level: ${level}.`;
   const generated = await validatedModelCallWithMeta({
-    schema: liveGeneratedExplainerSchema,
-    lenientSchema: generatedExplainerSchema,
+    schema: liveGeneratedOutcomeSchema,
+    lenientSchema: generatedOutcomeSchema,
     initialPrompt: prompt,
     request: (input) =>
       structuredRequest(
-        generatedExplainerWireSchema,
-        "grasp_explainer",
+        generatedOutcomeWireSchema,
+        "grasp_generation_outcome",
         explainerSystem,
         input,
       ),
   });
+  const meta: GenerationMeta = {
+    model: MODEL,
+    generateMs: Math.round(performance.now() - startedAt),
+    repairUsed: generated.repairUsed,
+    movementDegraded: generated.lenientUsed,
+    validation: "zod",
+  };
+  if (generated.data.kind === "clarification")
+    return { kind: "clarification", meta };
   return {
-    spec: explainerSpecSchema.parse(generated.data),
-    meta: {
-      model: MODEL,
-      generateMs: Math.round(performance.now() - startedAt),
-      repairUsed: generated.repairUsed,
-      movementDegraded: generated.lenientUsed,
-      validation: "zod",
-    },
+    kind: "explainer",
+    spec: explainerSpecSchema.parse(generated.data.spec),
+    meta,
   };
 }
 

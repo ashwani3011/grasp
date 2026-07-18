@@ -45,6 +45,21 @@ describe("explainer prompt", () => {
       "Keep the complete control state space at or below 12 scenarios",
     );
   });
+
+  it("clarifies only inputs with no discernible subject", () => {
+    expect(explainerSystem).toContain(
+      'Return result.kind "clarification" only when it has no discernible subject',
+    );
+    expect(explainerSystem).toContain(
+      "Do not reject an input because it is outside software development",
+    );
+    expect(explainerSystem).toContain(
+      "C, R, Go, SQL, and JWT are valid subjects",
+    );
+    expect(explainerSystem).toContain(
+      "Code snippets, error fragments, questions in any language",
+    );
+  });
 });
 
 afterEach(() => vi.unstubAllEnvs());

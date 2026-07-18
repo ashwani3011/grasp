@@ -490,12 +490,33 @@ const generatedPlaygroundSpecSchema = baseSpec
   })
   .strict();
 
+const generatedSpecWireSchema = z.discriminatedUnion("archetype", [
+  generatedStepperSpecSchema,
+  generatedPlaygroundSpecSchema,
+]);
+
 /** The OpenAI transport schema avoids a root union and arbitrary-key records. */
 export const generatedExplainerWireSchema = z
   .object({
-    spec: z.discriminatedUnion("archetype", [
-      generatedStepperSpecSchema,
-      generatedPlaygroundSpecSchema,
+    spec: generatedSpecWireSchema,
+  })
+  .strict();
+
+export const clarificationOutcomeSchema = z
+  .object({ kind: z.literal("clarification") })
+  .strict();
+
+/** Live generation may return a spec or ask the learner for a clearer subject. */
+export const generatedOutcomeWireSchema = z
+  .object({
+    result: z.discriminatedUnion("kind", [
+      z
+        .object({
+          kind: z.literal("explainer"),
+          spec: generatedSpecWireSchema,
+        })
+        .strict(),
+      clarificationOutcomeSchema,
     ]),
   })
   .strict();
@@ -606,6 +627,34 @@ export const liveGeneratedExplainerSchema =
       });
   });
 
+function generatedOutcomeSchemaFor(
+  specSchema: typeof generatedExplainerSchema,
+) {
+  return generatedOutcomeWireSchema.transform(({ result }, ctx) => {
+    if (result.kind === "clarification") return result;
+    const parsed = specSchema.safeParse({ spec: result.spec });
+    if (parsed.success)
+      return { kind: "explainer" as const, spec: parsed.data };
+    for (const issue of parsed.error.issues)
+      ctx.addIssue({
+        code: "custom",
+        message: issue.message,
+        path: ["result", ...issue.path],
+      });
+    return z.NEVER;
+  });
+}
+
+/** All renderer-safety rules, without the live-only movement quality bar. */
+export const generatedOutcomeSchema = generatedOutcomeSchemaFor(
+  generatedExplainerSchema,
+);
+
+/** Live outcome schema: clarification or a fully validated, moving explainer. */
+export const liveGeneratedOutcomeSchema = generatedOutcomeSchemaFor(
+  liveGeneratedExplainerSchema,
+);
+
 export type Level = z.infer<typeof levelSchema>;
 export type StepperSpec = z.output<typeof stepperSpecSchema>;
 export type PlaygroundSpec = z.output<typeof playgroundSpecSchema>;
@@ -613,6 +662,8 @@ export type ExplainerSpec = z.output<typeof explainerSpecSchema>;
 export type StepperSpecInput = z.input<typeof stepperSpecSchema>;
 export type PlaygroundSpecInput = z.input<typeof playgroundSpecSchema>;
 export type ExplainerSpecInput = z.input<typeof explainerSpecSchema>;
+export type ClarificationOutcome = z.output<typeof clarificationOutcomeSchema>;
+export type GeneratedOutcome = z.output<typeof generatedOutcomeSchema>;
 
 export const askTargetSchema = z
   .object({

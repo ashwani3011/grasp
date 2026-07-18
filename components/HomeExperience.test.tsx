@@ -44,4 +44,36 @@ describe("HomeExperience live pipeline", () => {
       screen.getByText(/gpt-test produced the JSON spec/),
     ).toBeInTheDocument();
   });
+
+  it("asks for a clearer subject without showing stale learning actions", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ kind: "clarification" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+    render(<HomeExperience />);
+
+    const input = screen.getByLabelText("Concept, code, or error message");
+    await user.type(input, "asdfkjasdf");
+    await user.click(screen.getByRole("button", { name: "Build explainer" }));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "What should Grasp explain?",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Interview me/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: /Refine your input/i }),
+    );
+    expect(input).toHaveFocus();
+  });
 });

@@ -369,3 +369,11 @@ This running log records what the owner requested, what Codex implemented, uncer
 - **Challenges / uncertainty:** The lenient boundary had to preserve exact common-question, reference, unused-chip, and all other trust checks so a mixed failure could never be mistaken for movement-only degradation. The saved harness output contained validation issues but not the rejected model JSON, so duplicate sanitization is verified with equivalent wire fixtures rather than reconstructing the original response.
 - **Direction changes:** Applied the reliability principle that quality bars repair once and then degrade gracefully, while safety and structural bars still fail hard. Showcase fixtures and shared links continue to use the unchanged strict trust-boundary schema.
 - **Commit:** `fix: harden live generation recovery`
+
+## 2026-07-18 12:16 IST — Clarify unintelligible generation inputs
+
+- **Asked:** Handle keyboard mash, greetings, and similarly underspecified input without inventing an explainer or adding a separate relevance-model call.
+- **Implemented:** Added a strict generation outcome that permits either a validated explainer or a fixed clarification signal from the existing model call; rendered a learner-facing refinement card; preserved the raw-spec API response for explainers; and expanded the live harness with six boundary cases covering noise plus valid short subjects.
+- **Challenges / uncertainty:** A deterministic preflight would misclassify concise programming languages, acronyms, non-English questions, code, and error fragments. The clarification branch also had to remain incapable of injecting learner-facing model prose.
+- **Direction changes:** Classified within the existing structured generation call, kept clarification copy application-owned, and retained the full Zod trust boundary and one-repair policy. A targeted real-model run correctly clarified `asdfkjasdf`, `hello`, and a lone emoji while generating explainers for `C`, `Go`, and `JWT`.
+- **Commit:** `feat: clarify unintelligible generation inputs`
